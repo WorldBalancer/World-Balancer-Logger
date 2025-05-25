@@ -242,7 +242,7 @@ ipcMain.handle("get-app-version", () => version);
 // App lifecycle
 app.on("ready", async () => {
     await initializeDatabase();
-    createWindow(win => {
+    createWindow(() => {
         logQueue.forEach(entry => log(entry.message, entry.level, entry.type));
         logQueue = [];
     });
@@ -251,7 +251,7 @@ app.on("ready", async () => {
 app.on("activate", async () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         await initializeDatabase();
-        createWindow(win => {
+        createWindow(() => {
             logQueue.forEach(entry => log(entry.message, entry.level, entry.type));
             logQueue = [];
         });

@@ -61,7 +61,7 @@ async function readCsvFile(filePath) {
 
 // Write Data to CSV
 async function writeDataToCsv(data, filePath) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const timestamp = new Date().toISOString();
         const csvRow = `${timestamp},${data.join(",")}\n`;
         fs.appendFileSync(filePath, csvRow);

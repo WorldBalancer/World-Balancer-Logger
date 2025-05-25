@@ -22,10 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const fs = require("fs");
 const fetch = require("node-fetch");
 const { LOGSCLASS } = require("../functions/logsclass.js");
-const sqlite3 = require("sqlite3");
 const main = require("../main.js"); // Import the main function
 const getConfig = require("../models/getConfig.js"); // Import the getConfig function
 
