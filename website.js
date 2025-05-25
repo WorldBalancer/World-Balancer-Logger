@@ -45,7 +45,7 @@ let instanceInfo = {
 function pushWebsite() {
     try {
         if (!io) {
-            errsleepy = `ERROR: Socket.io is not initialized!`;
+            errsleepy = "ERROR: Socket.io is not initialized!";
             LOGSCLASS.writeErrorToFile(errsleepy);
             return;
         }
@@ -54,7 +54,7 @@ function pushWebsite() {
 
         switch (instanceInfo.type) {
             case "public":
-                string += `; Public`;
+                string += "; Public";
                 break;
             case "group":
                 string += `; ${instanceInfo.groupType.toUpperCase()} by ${instanceInfo.groupId}`;
