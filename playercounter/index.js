@@ -52,7 +52,7 @@ const STATUS = {
 };
 
 // Utility function to validate counter type
-const isValidCounterType = (type) => counters.hasOwnProperty(type);
+const isValidCounterType = (type) => Object.prototype.hasOwnProperty.call(counters, type);
 
 // Utility function to validate status
 const isValidStatus = (status) => Object.values(STATUS).includes(status);
