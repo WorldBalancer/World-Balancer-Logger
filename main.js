@@ -236,7 +236,7 @@ function log(message, level = "info", type = "mainlog") {
 
 // IPC Handlers
 ipcMain.handle("load-config", loadConfig);
-ipcMain.handle("save-config", async (_, config) => await saveConfigRecursively(config));
+ipcMain.handle("save-config", async (_, config) => saveConfigRecursively(config));
 ipcMain.handle("get-app-version", () => version);
 
 // App lifecycle
