@@ -115,7 +115,7 @@ async function logStaffEvent(displayName, userId, eventType) {
         );
 
         const message = `${formattedLogMessage} staff roster - ${displayName} (${userId}) eventType: ${eventType}`;
-        if (Config.Toggle.Webhook == true) {
+        if (Config.Toggle.Webhook === true) {
             sendToWebhook(message);
         }
 
@@ -132,7 +132,7 @@ async function StaffRosterjoin(cleanedString, cleanUser) {
     const displayName = cleanedString;
     const userId = cleanUser;
 
-    if (Config.Toggle.staffrostertoggle == true) {
+    if (Config.Toggle.staffrostertoggle === true) {
         await logStaffEvent(displayName, userId, "OnPlayerJoined");
     }
 }
@@ -143,7 +143,7 @@ async function StaffRosterleft(cleanedString, cleanUser) {
     const displayName = cleanedString;
     const userId = cleanUser;
 
-    if (Config.Toggle.staffrostertoggle == true) {
+    if (Config.Toggle.staffrostertoggle === true) {
         await logStaffEvent(displayName, userId, "OnPlayerLeft");
     }
 }

@@ -94,7 +94,7 @@ const { getDeviceVoices, SayDeviceVoices } = require("./functions/TTS.js");
 (async () => {
     const Config = await initializeConfig(); // Fetch config settings from the database
 
-    if (Config.Toggle.WBselfservertoggle == true) {
+    if (Config.Toggle.WBselfservertoggle === true) {
         startServer()
     }
 
@@ -200,7 +200,7 @@ async function monitorAndSend() {
 
                             resetCounter("player");
 
-                            if (Config.Toggle.vrcxdata == true) {
+                            if (Config.Toggle.vrcxdata === true) {
                                 vrcxdata();
                             }
 
@@ -209,7 +209,7 @@ async function monitorAndSend() {
                                 "info",
                                 "joinleavelog"
                             );
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(logParts.join(" "));
                             }
                         } else if (log.includes("[Always] Instance closed:")) {
@@ -232,7 +232,7 @@ async function monitorAndSend() {
                                 "joinleavelog"
                             );
 
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(formattedLogMessage);
                             }
                         } else if (log.includes("[API] Requesting Get prints")) {
@@ -247,7 +247,7 @@ async function monitorAndSend() {
                             )}:f> ${logParts.join(" ")}`;
 
                             ModClass.writeModerationToFile(formattedLogMessage);
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(formattedLogMessage);
                             }
                             main.log(formattedLogMessage, "info", "modlog");
@@ -262,7 +262,7 @@ async function monitorAndSend() {
 
                             ModClass.writeModerationToFile(formattedLogMessage);
 
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(logParts.join(" "));
                             }
 
@@ -274,7 +274,7 @@ async function monitorAndSend() {
                                     /A vote kick has been initiated against [^,]+/
                                 );
                             if (matchResult) {
-                                if (Config.Toggle.TTS == true) {
+                                if (Config.Toggle.TTS === true) {
                                     getDeviceVoices().then((list11) => {
                                         SayDeviceVoices(
                                             `${matchResult[0]}`,
@@ -373,7 +373,7 @@ async function monitorAndSend() {
                                 "info",
                                 "joinleavelog"
                             );
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(message);
                             }
                         } else if (log.includes("[Behaviour] OnPlayerLeft")) {
@@ -417,7 +417,7 @@ async function monitorAndSend() {
                             const notimestampmessage = `VRChat Log - OnPlayerLeft ${cleanedString} ${cleanUser}`;
 
                             main.log(notimestampmessage, "info", "joinleavelog");
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(message);
                             }
                         } else if (log.includes("[Behaviour] Destroying")) {
@@ -471,7 +471,7 @@ async function monitorAndSend() {
                                 .filter((part) => part !== "");
                             logParts.splice(logParts.indexOf("[Behaviour]"), 1);
                             main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(logParts.join(" "));
                             }
                         } else if (
@@ -493,7 +493,7 @@ async function monitorAndSend() {
                                 formattedLogMessage
                             );
                             main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(logParts.join(" "));
                             }
                         } else if (log.includes("USharpVideo")) {
@@ -505,7 +505,7 @@ async function monitorAndSend() {
                                 .filter((part) => part !== "");
 
                             main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(logParts.join(" "));
                             }
                         } else if (log.includes("Video Playback")) {
@@ -518,7 +518,7 @@ async function monitorAndSend() {
 
                             main.log(logParts.join(" "), "info", "modlog");
 
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(logParts.join(" "));
                             }
                         } else if (
@@ -534,7 +534,7 @@ async function monitorAndSend() {
                                 "info",
                                 "joinleavelog"
                             );
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(logParts.join(" "));
                             }
                         } else if (log.includes("Switching ")) {
@@ -559,13 +559,13 @@ async function monitorAndSend() {
                                     timestamp
                                 )}:f> vrchat log - user ${username} switching to ${avatarneedName}`;
 
-                                if (Config.Toggle.Webhook == true) {
+                                if (Config.Toggle.Webhook === true) {
                                 sendToWebhook(formattedLogMessage);
                                 }
                                 AVISwitchingClass.writeModerationToFile(
                                     formattedLogMessage
                                 );
-                                if (Config.Toggle.AviStwitch == true) {
+                                if (Config.Toggle.AviStwitch === true) {
                                     main.log(
                                         `vrchat log - user ${username} switching to ${avatarneedName}`,
                                         "info",
@@ -607,7 +607,7 @@ async function monitorAndSend() {
                             ModClass.writeModerationToFile(formattedLogMessage);
 
                             main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(formattedLogMessage);
                             }
                         } else if (
@@ -628,7 +628,7 @@ async function monitorAndSend() {
                             ModClass.writeModerationToFile(formattedLogMessage);
 
                             main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook == true) {
+                            if (Config.Toggle.Webhook === true) {
                             sendToWebhook(formattedLogMessage);
                             }
                         } else if (
@@ -676,7 +676,7 @@ async function monitorAndSend() {
                                             instanceId: instanceId
                                         };
 
-                                        if (Config.Toggle.WBselfservertoggle == true) {
+                                        if (Config.Toggle.WBselfservertoggle === true) {
                                         updateInstanceInfo(newInfo);
                                         }
 
@@ -700,7 +700,7 @@ async function monitorAndSend() {
                                         formattedLogMessage = `<t:${Math.round(
                                             timestamp
                                         )}:f> You have joined [WORLD URL](https://vrchat.com/home/launch?worldId=${worldId}&instanceId=${instanceInfo})`;
-                                        if (Config.Toggle.Webhook == true) {
+                                        if (Config.Toggle.Webhook === true) {
                                         sendToWebhook(formattedLogMessage);
                                         }
                                     } else {

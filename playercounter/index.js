@@ -145,7 +145,7 @@ const logCounter = async (type, status) => {
     )}`;
 
     main.log(message, "info", "playercounterslog");
-    if (Config.Toggle.Webhook == true) {
+    if (Config.Toggle.Webhook === true) {
         sendToWebhook(message);
     }
 };
