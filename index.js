@@ -110,7 +110,7 @@ async function checkForNewFiles() {
     const logDirectory = Config.Directories?.LogDirectory;
 
     if (!logDirectory) {
-        errsleepy = `Log directory path is missing or null.`;
+        errsleepy = "Log directory path is missing or null.";
         LOGSCLASS.writeErrorToFile(errsleepy);
         return;
     }
@@ -705,7 +705,7 @@ async function monitorAndSend() {
                                         }
                                     } else {
                                         main.log(
-                                            `Error: Unable to extract world ID and instance info`,
+                                            "Error: Unable to extract world ID and instance info",
                                             "info",
                                             "joinleavelog"
                                         );
@@ -720,7 +720,7 @@ async function monitorAndSend() {
                     lastReadPosition = newLastReadPosition;
                 } else {
                     main.log(
-                        `No log file selected. Waiting for a new log file...`,
+                        "No log file selected. Waiting for a new log file...",
                         "info",
                         "mainlog"
                     );

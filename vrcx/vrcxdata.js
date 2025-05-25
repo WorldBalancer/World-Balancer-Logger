@@ -56,7 +56,7 @@ async function vrcxdata() {
         if (!response.ok) {
             if (response.status === 404) {
                 main.log(
-                    `vrcx - Warning is the vrcx running?`,
+                    "vrcx - Warning is the vrcx running?",
                     "info",
                     "joinleavelog"
                 );
