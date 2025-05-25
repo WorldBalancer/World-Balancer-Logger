@@ -651,7 +651,7 @@ async function monitorAndSend() {
                                     const subparts = destinationPart.split(":");
                                     if (subparts.length > 1) {
                                         const worldId = subparts[0].trim(); // Trim any leading or trailing whitespaces
-                                        const instanceInfo = subparts[1].trim();
+                                        let instanceInfo = subparts[1].trim();
 
                                         // Remove the query parameters from instanceInfo
                                         const queryIndex =
