@@ -1,0 +1,45 @@
+{
+    "name": "world-balancer-logger",
+    "version": "2.0.0",
+    "description": "Logger",
+    "main": "index.js",
+    "bin": "index.js",
+    "author": "worldbalancer",
+    "scripts": {
+        "test": "electron .",
+        "build": "electron-builder build --win"
+    },
+    "build": {
+        "appId": "com.worldbalancer.worldbalancer",
+        "nsis": {
+            "allowToChangeInstallationDirectory": true,
+            "license": "license.txt",
+            "oneClick": false
+        },
+        "win": {
+            "artifactName": "${productName}-Setup-${version}.${ext}",
+            "icon": "assets/icon.png",
+            "files": [],
+            "target": [
+                "nsis",
+                "msi"
+            ]
+        }
+    },
+    "license": "MIT",
+    "dependencies": {
+        "axios": "0.27.2",
+        "express": "^4.21.1",
+        "fuzzyset": "^1.0.7",
+        "node-fetch": "2.7.0",
+        "path": "^0.12.7",
+        "say": "^0.16.0",
+        "sequelize": "^6.37.7",
+        "socket.io": "^4.8.1",
+        "sqlite3": "^5.1.7"
+    },
+    "devDependencies": {
+        "electron": "^31.3.1",
+        "electron-builder": "^25.0.5"
+    }
+}

@@ -1,0 +1,728 @@
+<!--
+MIT License
+
+Copyright (c) 2025 World Balancer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>World Balancer Monitor</title>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous" />
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: #f0f0f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        header {
+            background: linear-gradient(135deg, #d127ca, #0dfdde);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-tabs {
+            border-bottom: 1px solid #d127ca;
+        }
+
+        .nav-tabs .nav-link {
+            color: #f17acc;
+            font-weight: 500;
+            transition: color 0.3s ease, background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4em;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: #ffffff;
+            background-color: #2c2c2c;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #111;
+            border-color: #d127ca #d127ca #000;
+            color: #0dfdde;
+        }
+
+        .container-fluid {
+            padding: 20px;
+        }
+
+        .logsDiv {
+            overflow-y: auto;
+            height: 400px;
+            background-color: #1c1e1f;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.05);
+        }
+
+        .logsDiv p {
+            color: #ffb6c1;
+            font-family: monospace;
+            margin: 0;
+            padding: 2px 0;
+        }
+
+        .logsDiv::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .logsDiv::-webkit-scrollbar-thumb {
+            background: #adb5bd;
+            border-radius: 4px;
+        }
+
+        .logsDiv::-webkit-scrollbar-track {
+            background: #e9ecef;
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            background-color: #121212;
+            border-bottom: 1px solid #444;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .card-body {
+            background-color: #1e1e1e;
+        }
+
+        .btn {
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        .btn-toggle {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .modal-content {
+            border: 1px solid #444;
+        }
+
+        .modal-header,
+        .modal-footer {
+            border-color: #444;
+        }
+
+        .modal-title {
+            color: #ff5eaa;
+        }
+
+        footer {
+            padding: 20px;
+            background-color: #111;
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 576px) {
+            .card-header {
+                font-size: 1rem;
+                text-align: center;
+            }
+
+            .form-label {
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-dark th,
+        .table-dark td {
+            white-space: nowrap;
+            border-color: #333;
+        }
+
+        .table-dark {
+            background-color: #2b2b2b;
+        }
+
+        .form-check-input:checked {
+            background-color: #0dfdde;
+            border-color: #0dfdde;
+        }
+
+        .modal-dialog {
+            z-index: 1050;
+        }
+
+        .modal-backdrop {
+            z-index: 1040;
+        }
+
+        #warningModal {
+            z-index: 1050;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="bg-dark text-white text-center py-3">
+        <h1>Log Viewer</h1>
+    </header>
+
+    <!-- Tab Content -->
+    <div class="container-fluid">
+        <ul class="nav nav-tabs" id="logTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="main-log-tab" data-bs-toggle="tab" href="#main-log" role="tab">
+                    <i class="bi bi-terminal"></i> Main Log
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="joining-leaving-tab" data-bs-toggle="tab" href="#joining-leaving" role="tab">
+                    <i class="bi bi-people"></i> Joining/Leaving
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="moderation-logs-tab" data-bs-toggle="tab" href="#moderation-logs" role="tab">
+                    <i class="bi bi-shield-lock"></i> Moderation Logs
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="staff-roster-tab" data-bs-toggle="tab" href="#staffroster" role="tab">
+                    <i class="bi bi-person-badge"></i> Staff Roster
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="player-counters-logs-tab" data-bs-toggle="tab" href="#player-counters-logs"
+                    role="tab">
+                    <i class="bi bi-bar-chart"></i> Player Counters
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="vrchat-switchavi-logs-tab" data-bs-toggle="tab" href="#vrchat-switchavi-logs"
+                    role="tab">
+                    <i class="bi bi-person-arms-up"></i> Switch Avi Logs
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="settings-tab" data-bs-toggle="tab" href="#settings" role="tab">
+                    <i class="bi bi-gear"></i> Settings
+                </a>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-3" id="logTabContent">
+            <!-- Log Tab Template -->
+            <div class="tab-pane fade show active" id="main-log" role="tabpanel">
+                <div class="d-flex justify-content-end mb-2">
+                    <button class="btn btn-sm btn-danger" onclick="clearLogs('mainLogContent')">Clear Logs</button>
+                </div>
+                <div class="logsDiv" id="mainLogContent"></div>
+            </div>
+
+            <div class="tab-pane fade" id="joining-leaving" role="tabpanel">
+                <div class="d-flex justify-content-end mb-2">
+                    <button class="btn btn-sm btn-danger" onclick="clearLogs('joiningLeavingContent')">Clear
+                        Logs</button>
+                </div>
+                <div class="logsDiv" id="joiningLeavingContent"></div>
+            </div>
+
+            <div class="tab-pane fade" id="moderation-logs" role="tabpanel">
+                <div class="d-flex justify-content-end mb-2">
+                    <button class="btn btn-sm btn-danger" onclick="clearLogs('moderationLogsContent')">Clear
+                        Logs</button>
+                </div>
+                <div class="logsDiv" id="moderationLogsContent"></div>
+            </div>
+
+            <div class="tab-pane fade" id="staffroster" role="tabpanel">
+                <div class="d-flex justify-content-end mb-2">
+                    <button class="btn btn-sm btn-danger" onclick="clearLogs('staffrosterContent')">Clear Logs</button>
+                </div>
+                <div class="logsDiv" id="staffrosterContent"></div>
+            </div>
+
+            <div class="tab-pane fade" id="player-counters-logs" role="tabpanel">
+                <div class="d-flex justify-content-end mb-2">
+                    <button class="btn btn-sm btn-danger" onclick="clearLogs('playercountersContent')">Clear
+                        Logs</button>
+                </div>
+                <div class="logsDiv" id="playercountersContent"></div>
+            </div>
+
+            <div class="tab-pane fade" id="vrchat-switchavi-logs" role="tabpanel">
+                <div class="d-flex justify-content-end mb-2">
+                    <button class="btn btn-sm btn-danger" onclick="clearLogs('vrchatswitchaviContent')">Clear
+                        Logs</button>
+                </div>
+                <div class="logsDiv" id="vrchatswitchaviContent"></div>
+            </div>
+
+            <div class="tab-pane fade" id="settings" role="tabpanel">
+                <div class="p-3 bg-dark border rounded border-secondary">
+                <!-- Settings Tab -->
+                <div class="row">
+                    <!-- Warning Modal -->
+                    <div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content bg-dark text-white">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="warningModalLabel">
+                                        Warning
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body" id="warningModalBody">
+                                    <!-- Warning message will be inserted here -->
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Options -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card bg-dark text-white">
+                            <div class="card-header">Toggle Options</div>
+                            <div class="card-body">
+                                <div id="toggleOptions"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Logger Webhooks -->
+                    <div class="col-md-12 mb-4">
+                        <div class="card bg-dark text-white">
+                            <div class="card-header">
+                                Main Logger Webhooks
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>URL</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="mainloggerTableBody">
+                                            <!-- Mainlogger rows will be dynamically inserted here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <form id="mainloggerSettingsForm">
+                                    <div class="mb-3">
+                                        <label for="mainloggerURL" class="form-label">Webhook URL:</label>
+                                        <input type="text" class="form-control" id="mainloggerURL"
+                                            placeholder="Enter Webhook URL" />
+                                    </div>
+                                    <button type="button" class="btn btn-primary" onclick="addMainlogger()">
+                                        Add Main Logger Webhook
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auth Webhooks -->
+                    <div class="col-md-12 mb-4">
+                        <div class="card bg-dark text-white">
+                            <div class="card-header">Auth Webhooks</div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>URL</th>
+                                                <th>Token</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="authwebhookTableBody">
+                                            <!-- Auth webhook rows will be dynamically inserted here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <form id="authwebhookSettingsForm">
+                                    <div class="mb-3">
+                                        <label for="authWebhookURL" class="form-label">Webhook URL:</label>
+                                        <input type="text" class="form-control" id="authWebhookURL"
+                                            placeholder="Enter Webhook URL" />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="authWebhookToken" class="form-label">Auth Token:</label>
+                                        <input type="text" class="form-control" id="authWebhookToken"
+                                            placeholder="Enter Auth Token" />
+                                    </div>
+                                    <button type="button" class="btn btn-primary" onclick="addAuthWebhook()">
+                                        Add Auth Webhook
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Debugging Options -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card bg-dark text-white">
+                            <div class="card-header">Save Options</div>
+                            <div class="card-body">
+                                <form id="debugSettingsForm">
+                                    <button type="button" class="btn btn-success" onclick="saveConfig()">
+                                        Save Settings
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-5">
+        <h2>Copyright © 2025 World Balancer</h2>
+    </footer>
+
+    <!-- Scripts -->
+    <!-- Load JS dependencies -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+        integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
+        integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
+        crossorigin="anonymous"></script>
+
+    <script>
+        function clearLogs(id) {
+            const div = document.getElementById(id);
+            if (div) div.innerHTML = "";
+        }
+
+        // Save active tab to localStorage
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', (e) => {
+                localStorage.setItem('activeTab', e.target.id);
+            });
+        });
+
+        // Restore active tab on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const activeTabId = localStorage.getItem('activeTab');
+            if (activeTabId) {
+                const triggerEl = document.getElementById(activeTabId);
+                if (triggerEl) {
+                    new bootstrap.Tab(triggerEl).show();
+                }
+            }
+        });
+    </script>
+    <script>
+        // Predefined log container elements
+        const logsDivMain = document.getElementById("mainLogContent");
+        const logsDivJoinLeave = document.getElementById(
+            "joiningLeavingContent"
+        );
+        const logsDivModLogs = document.getElementById(
+            "moderationLogsContent"
+        );
+        const logsDivplayercountersLogs = document.getElementById(
+            "playercountersContent"
+        );
+        const logsDivrchatswitchaviLogs = document.getElementById(
+            "vrchatswitchaviContent"
+        );
+        const logsDivstaffrosterLogs =
+            document.getElementById("staffrosterContent");
+
+        window.addEventListener("message", (event) => {
+            console.log("Received message:", event.data); // Add this line
+            let logElement;
+            switch (event.data.type) {
+                case "mainlog":
+                    logElement = document.createElement("p");
+                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                    logsDivMain.appendChild(logElement);
+                    logsDivMain.scrollTop = logsDivMain.scrollHeight;
+                    break;
+                case "joinleavelog":
+                    logElement = document.createElement("p");
+                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                    logsDivJoinLeave.appendChild(logElement);
+                    logsDivJoinLeave.scrollTop =
+                        logsDivJoinLeave.scrollHeight;
+                    break;
+                case "modlog":
+                    logElement = document.createElement("p");
+                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                    logsDivModLogs.appendChild(logElement);
+                    logsDivModLogs.scrollTop = logsDivModLogs.scrollHeight;
+                    break;
+                case "playercounterslog":
+                    logElement = document.createElement("p");
+                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                    logsDivplayercountersLogs.appendChild(logElement);
+                    logsDivplayercountersLogs.scrollTop =
+                        logsDivplayercountersLogs.scrollHeight;
+                    break;
+                case "vrchatswitchavilog":
+                    logElement = document.createElement("p");
+                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                    logsDivrchatswitchaviLogs.appendChild(logElement);
+                    logsDivrchatswitchaviLogs.scrollTop =
+                        logsDivrchatswitchaviLogs.scrollHeight;
+                    break;
+                case "srlog":
+                    logElement = document.createElement("p");
+                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                    logsDivstaffrosterLogs.appendChild(logElement);
+                    logsDivstaffrosterLogs.scrollTop =
+                        logsDivstaffrosterLogs.scrollHeight;
+                    break;
+                default:
+                    console.warn("Unknown log type:", event.data.type);
+                    break;
+            }
+        });
+    </script>
+
+    <script>
+        const directoriesOptions = {};
+        const staffrosterOptions = {};
+        const toggleOptions = {};
+        const mainloggerWebhooks = [];
+        const authwebhooks = [];
+
+        // Show warning modal with a custom message
+        function showWarningModal(message) {
+            document.getElementById("warningModalBody").textContent =
+                message;
+            const warningModal = new bootstrap.Modal(
+                document.getElementById("warningModal")
+            );
+
+            warningModal.show(); /* Show the modal */
+        }
+
+        // Load configuration from main process
+        async function loadConfig() {
+            try {
+                const savedConfig = await window.api.loadConfig();
+                console.log(savedConfig);
+
+                // Ensure proper merging of configuration data
+                Object.assign(toggleOptions, savedConfig.Toggle || {});
+                Object.assign(
+                    staffrosterOptions,
+                    savedConfig.dirstaffroster || {}
+                );
+                Object.assign(
+                    directoriesOptions,
+                    savedConfig.Directories || {}
+                );
+
+                mainloggerWebhooks.length = 0; // Clear existing items
+                mainloggerWebhooks.push(
+                    ...(savedConfig.Webhooks.Mainlogger || [])
+                );
+                authwebhooks.length = 0; // Clear existing items
+                authwebhooks.push(
+                    ...(savedConfig.Webhooks.Authwebhook || [])
+                );
+
+                renderToggleOptions();
+                renderMainloggerTable();
+                renderAuthWebhookTable();
+            } catch (error) {
+                console.error("Failed to load config:", error);
+            }
+        }
+
+        // Save configuration to main process
+        async function saveConfig() {
+            const config = {
+                Directories: directoriesOptions,
+                dirstaffroster: staffrosterOptions,
+                Webhooks: {
+                    Mainlogger: mainloggerWebhooks,
+                    Authwebhook: authwebhooks,
+                },
+                Toggle: toggleOptions,
+            };
+
+            try {
+                await window.api.saveConfig(config);
+                console.log("Configuration saved:", config);
+            } catch (error) {
+                console.error("Failed to save config:", error);
+            }
+        }
+
+        // Initial rendering
+        function init() {
+            loadConfig();
+        }
+
+        // Toggle options rendering
+        function renderToggleOptions() {
+            const toggleOptionsDiv =
+                document.getElementById("toggleOptions");
+            toggleOptionsDiv.innerHTML = ""; // Clear existing content
+            Object.keys(toggleOptions).forEach((key) => {
+                const isChecked = toggleOptions[key];
+                toggleOptionsDiv.innerHTML += `
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="${key}" ${isChecked ? "checked" : ""
+                    } onchange="updateToggleOptions('${key}')">
+                <label class="form-check-label" for="${key}">${key}</label>
+            </div>
+        `;
+            });
+        }
+
+        // Update toggle options
+        function updateToggleOptions(key) {
+            toggleOptions[key] = document.getElementById(key).checked;
+            saveConfig();
+        }
+
+        // Main Logger Table rendering
+        function renderMainloggerTable() {
+            const tableBody = document.getElementById(
+                "mainloggerTableBody"
+            );
+            tableBody.innerHTML = ""; // Clear existing rows
+            mainloggerWebhooks.forEach((webhook, index) => {
+                tableBody.innerHTML += `
+                <tr>
+                    <td>${webhook}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="removeMainlogger(${index})">Remove</button>
+                    </td>
+                </tr>
+            `;
+            });
+        }
+
+        // Auth Webhook Table rendering
+        function renderAuthWebhookTable() {
+            const tableBody = document.getElementById(
+                "authwebhookTableBody"
+            );
+            tableBody.innerHTML = ""; // Clear existing rows
+            authwebhooks.forEach((webhook, index) => {
+                tableBody.innerHTML += `
+                <tr>
+                    <td>${webhook.url}</td>
+                    <td>${webhook.token}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="removeAuthWebhook(${index})">Remove</button>
+                    </td>
+                </tr>
+            `;
+            });
+        }
+
+        // Add Main Logger Webhook
+        function addMainlogger() {
+            const url = document.getElementById("mainloggerURL").value;
+            if (url) {
+                mainloggerWebhooks.push(url);
+                renderMainloggerTable();
+                document.getElementById("mainloggerSettingsForm").reset();
+                saveConfig(); // Save configuration after adding
+            } else {
+                alert("Please enter a URL.");
+            }
+        }
+
+        // Remove Main Logger Webhook
+        function removeMainlogger(index) {
+            mainloggerWebhooks.splice(index, 1);
+            renderMainloggerTable();
+            saveConfig(); // Save configuration after removing
+        }
+
+        // Add Auth Webhook
+        function addAuthWebhook() {
+            const url = document.getElementById("authWebhookURL").value;
+            const token = document.getElementById("authWebhookToken").value;
+            if (url && token) {
+                authwebhooks.push({ url, token });
+                renderAuthWebhookTable();
+                document.getElementById("authwebhookSettingsForm").reset();
+                saveConfig(); // Save configuration after adding
+            } else {
+                alert("Please enter both URL and Auth Token.");
+            }
+        }
+
+        // Remove Auth Webhook
+        function removeAuthWebhook(index) {
+            authwebhooks.splice(index, 1);
+            renderAuthWebhookTable();
+            saveConfig(); // Save configuration after removing
+        }
+
+        // Initialize the page
+        init();
+    </script>
+</body>
+
+</html>
