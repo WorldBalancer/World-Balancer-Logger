@@ -28,7 +28,7 @@
     },
     "license": "MIT",
     "dependencies": {
-        "axios": "0.27.2",
+        "axios": "0.30.0",
         "express": "^4.21.1",
         "fuzzyset": "^1.0.7",
         "node-fetch": "2.7.0",
