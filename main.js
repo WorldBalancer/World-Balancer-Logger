@@ -146,7 +146,7 @@ async function updateMissingKeys(defaultConfig, currentConfig, parentKey = "") {
         } else {
             const existingValue = await getConfig(currentKey);
             if (existingValue === null) {
-                console.log(`Adding missing key: ${currentKey}`);
+                
                 await Config.upsert({ keyid: currentKey, value: JSON.stringify(defaultValue) });
             }
         }
@@ -162,7 +162,7 @@ async function removeUnusedKeys() {
 
     for (const key of currentKeys) {
         if (!defaultKeys.has(key)) {
-            console.log(`Removing unused key: ${key}`);
+            
             await Config.destroy({ where: { keyid: key } });
         }
     }
@@ -184,10 +184,10 @@ async function initializeDatabase() {
         await sequelize.sync({ alter: true });
 
         if (!dbExists) {
-            console.log("Creating new config...");
+            
             await setupInitialConfig();
         } else {
-            console.log("Migrating existing config...");
+            
             await migrateConfig();
         }
     } catch (error) {
