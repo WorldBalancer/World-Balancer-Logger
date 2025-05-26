@@ -25,6 +25,12 @@ SOFTWARE.
 const Config = require('./Config');
 const { LOGSCLASS } = require('../functions/logsclass'); // Optional: For logging errors
 
+/**
+ *
+ *
+ * @param {*} key
+ * @return {*} 
+ */
 async function getConfig(key) {
     if (typeof key !== "string") {
         LOGSCLASS?.writeErrorToFile?.(`Invalid config key type: ${typeof key}`);

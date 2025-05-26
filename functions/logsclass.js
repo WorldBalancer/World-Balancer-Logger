@@ -25,7 +25,19 @@ SOFTWARE.
 const fs = require("fs");
 const path = require("path");
 
+/**
+ *
+ *
+ * @class LOGSCLASS
+ */
 class LOGSCLASS {
+    /**
+     *
+     *
+     * @static
+     * @param {*} error
+     * @memberof LOGSCLASS
+     */
     static async writeErrorToFile(error) {
         const { logpath } = require("../Configfiles/config.js");
         const errorlog = path.join(logpath, "error.log");
@@ -34,7 +46,19 @@ class LOGSCLASS {
     }
 }
 
+/**
+ *
+ *
+ * @class ModClass
+ */
 class ModClass {
+    /**
+     *
+     *
+     * @static
+     * @param {*} formattedLogMessage
+     * @memberof ModClass
+     */
     static async writeModerationToFile(formattedLogMessage) {
         const { logpath } = require("../Configfiles/config.js");
         const Moderationlog = path.join(logpath, "Moderation_new.log");
@@ -46,6 +70,11 @@ class ModClass {
     }
 }
 
+/**
+ *
+ *
+ * @class ModResetShowUserAvatarClass
+ */
 class ModResetShowUserAvatarClass {
     static async writeModerationResetShowUserAvatarToFile(formattedLogMessage) {
         const { logpath } = require("../Configfiles/config.js");
@@ -60,7 +89,20 @@ class ModResetShowUserAvatarClass {
         );
     }
 }
+
+/**
+ *
+ *
+ * @class AVISwitchingClass
+ */
 class AVISwitchingClass {
+    /**
+     *
+     *
+     * @static
+     * @param {*} formattedLogMessage
+     * @memberof AVISwitchingClass
+     */
     static async writeModerationToFile(formattedLogMessage) {
         const { logpath } = require("../Configfiles/config.js");
         const AviSwitchinglog = path.join(logpath, "AviSwitching.log");
@@ -72,7 +114,19 @@ class AVISwitchingClass {
     }
 }
 
+/**
+ *
+ *
+ * @class AVISwitchinglogsClass
+ */
 class AVISwitchinglogsClass {
+    /**
+     *
+     *
+     * @static
+     * @param {*} formattedLogMessage
+     * @memberof AVISwitchinglogsClass
+     */
     static async writeModerationToFile(formattedLogMessage) {
         const { logpath } = require("../Configfiles/config.js");
         const AviSwitchingdatalog = path.join(
@@ -87,6 +141,11 @@ class AVISwitchinglogsClass {
     }
 }
 
+/**
+ *
+ *
+ * @class PlayerClass
+ */
 class PlayerClass {
     static async writeplayerToFile(formattedLogMessage) {
         const { logpath } = require("../Configfiles/config.js");
@@ -95,7 +154,20 @@ class PlayerClass {
         fs.appendFileSync(playerlog, `${timestamp} - ${formattedLogMessage}\n`);
     }
 }
+
+/**
+ *
+ *
+ * @class MODLOGCLASS
+ */
 class MODLOGCLASS {
+    /**
+     *
+     *
+     * @static
+     * @param {*} formattedLogMessage
+     * @memberof MODLOGCLASS
+     */
     static async writeModerationlogToFile(formattedLogMessage) {
         const { logpath } = require("../Configfiles/config.js");
         const modlogdata = path.join(logpath, "modata.log");
@@ -107,7 +179,19 @@ class MODLOGCLASS {
     }
 }
 
+/**
+ *
+ *
+ * @class StaffROSter
+ */
 class StaffROSter {
+    /**
+     *
+     *
+     * @static
+     * @param {*} dataToWrite
+     * @memberof StaffROSter
+     */
     static async writedataToFile(dataToWrite) {
         const { logpath } = require("../Configfiles/config.js");
         const staffrosterlog = path.join(logpath, "staffroster.log");

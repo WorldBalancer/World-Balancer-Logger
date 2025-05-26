@@ -27,6 +27,11 @@ const { LOGSCLASS } = require("../functions/logsclass.js");
 const main = require("../main.js"); // Import the main function
 const getConfig = require("../models/getConfig.js"); // Import the getConfig function
 
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function initializeConfig() {
     const Config = {
         vrcx: await getConfig("vrcx"),
@@ -37,6 +42,11 @@ async function initializeConfig() {
     return Config;
 }
 
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function vrcxdata() {
     const Config = await initializeConfig(); // Fetch config settings from the database
 

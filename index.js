@@ -31,11 +31,15 @@ const { app } = require("electron");
 const appInstallPath = app.getPath("userData");
 const logpath = path.join(appInstallPath, "log");
 const configDir = path.join(appInstallPath, "config");
-
-const getConfig = require("./models/getConfig.js"); // Import the getConfig function
+const getConfig = require("./models/getConfig.js");
 
 let errsleepy = "";
 
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function initializeConfig() {
     const Config = {
         Directories: {
@@ -105,6 +109,11 @@ const { getDeviceVoices, SayDeviceVoices } = require("./functions/TTS.js");
 let currentLogFile = null;
 let lastReadPosition = 0;
 
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function checkForNewFiles() {
     const Config = await initializeConfig(); // Fetch config settings from the database
     const logDirectory = Config.Directories?.LogDirectory;
@@ -149,6 +158,13 @@ async function checkForNewFiles() {
     }
 }
 
+/**
+ *
+ *
+ * @param {*} currentLogFile
+ * @param {*} lastReadPosition
+ * @return {*} 
+ */
 async function readNewLogs(currentLogFile, lastReadPosition) {
     try {
         const fileData = await fs.promises.readFile(currentLogFile, "utf8");
@@ -169,6 +185,10 @@ async function readNewLogs(currentLogFile, lastReadPosition) {
     }
 }
 
+/**
+ *
+ *
+ */
 async function monitorAndSend() {
     const Config = await initializeConfig(); // Fetch config settings from the database
 

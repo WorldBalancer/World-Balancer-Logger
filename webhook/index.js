@@ -26,6 +26,11 @@ const { LOGSCLASS } = require("../functions/logsclass");
 const axios = require("axios");
 const getConfig = require("../models/getConfig");
 
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function initializeConfig() {
     return {
         Toggle: {
@@ -40,12 +45,25 @@ async function initializeConfig() {
     };
 }
 
+/**
+ *
+ *
+ * @param {*} [token=null]
+ * @return {*} 
+ */
 function getBaseHeaders(token = null) {
     const headers = { "Content-Type": "application/json" };
     if (token) headers.Authorization = `Bearer ${token}`;
     return headers;
 }
 
+/**
+ *
+ *
+ * @param {*} logEntry
+ * @param {*} isEmbed
+ * @return {*} 
+ */
 function createPayload(logEntry, isEmbed) {
     return isEmbed
         ? {
@@ -61,6 +79,13 @@ function createPayload(logEntry, isEmbed) {
         : { content: logEntry };
 }
 
+/**
+ *
+ *
+ * @param {*} url
+ * @param {*} data
+ * @param {*} headers
+ */
 async function postToWebhook(url, data, headers) {
     try {
         await axios.request({
@@ -79,6 +104,11 @@ async function postToWebhook(url, data, headers) {
     }
 }
 
+/**
+ *
+ *
+ * @param {*} logEntry
+ */
 async function sendToWebhook(logEntry) {
     const config = await initializeConfig();
     const isEmbed = config.Toggle.isEmbed;

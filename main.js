@@ -30,13 +30,17 @@ const sequelize = require("./models/configsqlite");
 const Config = require("./models/Config");
 const getConfig = require("./models/getConfig");
 const { version, name: appName } = require("./package.json");
-
 const isWindows = process.platform === "win32";
 
 // IPC: Get user data path
 ipcMain.handle("get-user-data-path", () => app.getPath("userData"));
 
 // Determine SQLite database path
+/**
+ *
+ *
+ * @return {*} 
+ */
 function getDatabasePath() {
     const baseDir = isWindows
         ? path.join(process.env.APPDATA || "", appName, "config")
@@ -45,6 +49,11 @@ function getDatabasePath() {
 }
 
 // Check if database file exists
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function doesDatabaseExist() {
     const dbPath = getDatabasePath();
     try {
@@ -56,6 +65,12 @@ async function doesDatabaseExist() {
 }
 
 // Recursively save config
+/**
+ *
+ *
+ * @param {*} obj
+ * @param {string} [parentKey=""]
+ */
 async function saveConfigRecursively(obj, parentKey = "") {
     for (const [key, value] of Object.entries(obj)) {
         const currentKey = parentKey ? `${parentKey}.${key}` : key;
@@ -68,6 +83,11 @@ async function saveConfigRecursively(obj, parentKey = "") {
 }
 
 // Load full config from DB and rebuild nested object
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function loadConfig() {
     try {
         const configEntries = await Config.findAll();
@@ -92,6 +112,13 @@ async function loadConfig() {
 }
 
 // Flatten nested object keys (dot notation)
+/**
+ *
+ *
+ * @param {*} obj
+ * @param {string} [parentKey=""]
+ * @return {*} 
+ */
 function flattenKeys(obj, parentKey = "") {
     let keys = [];
     for (const [key, value] of Object.entries(obj)) {
@@ -106,6 +133,11 @@ function flattenKeys(obj, parentKey = "") {
 }
 
 // Default config structure
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function getDefaultConfig() {
     const baseDir = path.join(os.homedir(), "AppData", "LocalLow", "VRChat", "VRChat");
 
@@ -137,6 +169,13 @@ async function setupInitialConfig() {
 }
 
 // Update config with missing keys
+/**
+ *
+ *
+ * @param {*} defaultConfig
+ * @param {*} currentConfig
+ * @param {string} [parentKey=""]
+ */
 async function updateMissingKeys(defaultConfig, currentConfig, parentKey = "") {
     for (const [key, defaultValue] of Object.entries(defaultConfig)) {
         const currentKey = parentKey ? `${parentKey}.${key}` : key;
@@ -196,6 +235,11 @@ async function initializeDatabase() {
 }
 
 // Electron window creation
+/**
+ *
+ *
+ * @param {*} callback
+ */
 function createWindow(callback) {
     const win = new BrowserWindow({
         width: 800,
@@ -217,6 +261,13 @@ function createWindow(callback) {
 
 // Buffered logging
 let logQueue = [];
+/**
+ *
+ *
+ * @param {*} message
+ * @param {string} [level="info"]
+ * @param {string} [type="mainlog"]
+ */
 function log(message, level = "info", type = "mainlog") {
     const windows = BrowserWindow.getAllWindows();
     const logData = {

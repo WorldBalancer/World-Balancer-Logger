@@ -26,6 +26,12 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 // Replace version info in DOM (for Electron, Node, Chrome)
 window.addEventListener("DOMContentLoaded", () => {
+    /**
+     *
+     *
+     * @param {*} selector
+     * @param {*} text
+     */
     const replaceText = (selector, text) => {
         const element = document.getElementById(selector);
         if (element) element.innerText = text;

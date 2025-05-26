@@ -29,6 +29,11 @@ const os = require("os");
 const pkg = require("../package.json");
 
 // Determine cross-platform user data directory
+/**
+ *
+ *
+ * @return {*} 
+ */
 function getUserDataPath() {
     const platform = process.platform;
     const home = os.homedir();

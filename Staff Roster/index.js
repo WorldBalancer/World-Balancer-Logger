@@ -30,6 +30,11 @@ const main = require("../main");
 const { sendToWebhook } = require("../webhook/index");
 
 // Initialize Configuration
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function initializeConfig() {
     const Config = {
         dirstaffroster: {
@@ -45,6 +50,12 @@ async function initializeConfig() {
 }
 
 // Read CSV File
+/**
+ *
+ *
+ * @param {*} filePath
+ * @return {*} 
+ */
 async function readCsvFile(filePath) {
     return new Promise((resolve, reject) => {
         fs.readFile(filePath, "utf8", (err, data) => {
@@ -60,6 +71,13 @@ async function readCsvFile(filePath) {
 }
 
 // Write Data to CSV
+/**
+ *
+ *
+ * @param {*} data
+ * @param {*} filePath
+ * @return {*} 
+ */
 async function writeDataToCsv(data, filePath) {
     return new Promise((resolve) => {
         const timestamp = new Date().toISOString();
@@ -70,6 +88,12 @@ async function writeDataToCsv(data, filePath) {
 }
 
 // Create FuzzySet from CSV Data
+/**
+ *
+ *
+ * @param {*} filePath
+ * @return {*} 
+ */
 async function getFuzzySet(filePath) {
     const csvData = await readCsvFile(filePath);
 
@@ -87,6 +111,13 @@ async function getFuzzySet(filePath) {
 }
 
 // Log Staff Event
+/**
+ *
+ *
+ * @param {*} displayName
+ * @param {*} userId
+ * @param {*} eventType
+ */
 async function logStaffEvent(displayName, userId, eventType) {
     const Config = await initializeConfig();
     const customFilePath = Config.dirstaffroster.staffgetDirectory;
@@ -126,6 +157,12 @@ async function logStaffEvent(displayName, userId, eventType) {
 }
 
 // Event Functions
+/**
+ *
+ *
+ * @param {*} cleanedString
+ * @param {*} cleanUser
+ */
 async function StaffRosterjoin(cleanedString, cleanUser) {
     const Config = await initializeConfig();
 
@@ -137,6 +174,12 @@ async function StaffRosterjoin(cleanedString, cleanUser) {
     }
 }
 
+/**
+ *
+ *
+ * @param {*} cleanedString
+ * @param {*} cleanUser
+ */
 async function StaffRosterleft(cleanedString, cleanUser) {
     const Config = await initializeConfig();
 

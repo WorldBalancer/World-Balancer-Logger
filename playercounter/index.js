@@ -27,6 +27,11 @@ const { sendToWebhook } = require("../webhook/index.js");
 const { LOGSCLASS } = require("../functions/logsclass.js");
 const getConfig = require("../models/getConfig.js"); // Import the getConfig function
 
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function initializeConfig() {
     const Config = {
         Toggle: {
@@ -52,12 +57,29 @@ const STATUS = {
 };
 
 // Utility function to validate counter type
+/**
+ *
+ *
+ * @param {*} type
+ */
 const isValidCounterType = (type) => Object.prototype.hasOwnProperty.call(counters, type);
 
 // Utility function to validate status
+/**
+ *
+ *
+ * @param {*} status
+ */
 const isValidStatus = (status) => Object.values(STATUS).includes(status);
 
 // Function to dynamically add a counter
+/**
+ *
+ *
+ * @param {*} type
+ * @param {number} [limit=100]
+ * @return {*} 
+ */
 const addCounter = (type, limit = 100) => {
     if (counters[type]) {
         return handleError(`Counter type '${type}' already exists.`);
@@ -67,6 +89,12 @@ const addCounter = (type, limit = 100) => {
 };
 
 // Function to dynamically remove a counter
+/**
+ *
+ *
+ * @param {*} type
+ * @return {*} 
+ */
 const removeCounter = (type) => {
     if (!isValidCounterType(type)) {
         return handleError(`No counter found for type: ${type}`);
@@ -76,6 +104,13 @@ const removeCounter = (type) => {
 };
 
 // Function to update a counter
+/**
+ *
+ *
+ * @param {*} type
+ * @param {*} status
+ * @return {*} 
+ */
 const updateCounter = (type, status) => {
     if (!isValidCounterType(type)) {
         return handleError(`No counter found for type: ${type}`);
@@ -114,6 +149,12 @@ const updateCounter = (type, status) => {
 };
 
 // Function to reset a counter
+/**
+ *
+ *
+ * @param {*} type
+ * @return {*} 
+ */
 const resetCounter = (type) => {
     if (!isValidCounterType(type)) {
         return handleError(`No counter found for type: ${type}`);
@@ -125,6 +166,13 @@ const resetCounter = (type) => {
 };
 
 // Function to set a new limit for a counter
+/**
+ *
+ *
+ * @param {*} type
+ * @param {*} newLimit
+ * @return {*} 
+ */
 const setLimit = (type, newLimit) => {
     if (!isValidCounterType(type)) {
         return handleError(`No counter found for type: ${type}`);
@@ -137,6 +185,12 @@ const setLimit = (type, newLimit) => {
 };
 
 // Function to log counter changes
+/**
+ *
+ *
+ * @param {*} type
+ * @param {*} status
+ */
 const logCounter = async (type, status) => {
     const Config = await initializeConfig(); // Fetch config settings from the database
     const counterData = counters[type];
@@ -151,6 +205,12 @@ const logCounter = async (type, status) => {
 };
 
 // Utility function to handle errors
+/**
+ *
+ *
+ * @param {*} errorMessage
+ * @return {*} 
+ */
 const handleError = (errorMessage) => {
     const timestamp = new Date().toISOString();
     const fullMessage = `[${timestamp}] ${errorMessage}`;
@@ -160,6 +220,11 @@ const handleError = (errorMessage) => {
 };
 
 // Utility function to capitalize a string
+/**
+ *
+ *
+ * @param {*} str
+ */
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
 module.exports = {
