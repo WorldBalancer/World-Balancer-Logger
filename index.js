@@ -67,44 +67,7 @@ if (!fs.existsSync(configDir)) {
 // fuck the log files so many why
 const {
     LOGSCLASS,
-    PlayerClass,
-    ModClass,
-    AVISwitchingClass,
-    ModResetShowUserAvatarClass,
-    AVISwitchinglogsClass,
-    MODLOGCLASS,
 } = require("./functions/logsclass.js");
-
-// self server worldid, instanceid, instanceInfo
-const {
-    startServer,
-    updateInstanceInfo,
-} = require("./website.js")
-
-// webhook send data it
-const { sendToWebhook } = require("./webhook/index.js");
-
-// player counter
-const { resetCounter, updateCounter } = require("./playercounter/index.js");
-
-// staff rosters
-const { StaffRosterjoin, StaffRosterleft } = require("./Staff Roster/index.js")
-
-const { vrcxdata } = require("./vrcx/vrcxdata.js");
-
-const { getDeviceVoices, SayDeviceVoices } = require("./functions/TTS.js");
-
-// Wrap in an IIFE (Immediately Invoked Function Expression) to use await at the top level
-(async () => {
-    const Config = await initializeConfig(); // Fetch config settings from the database
-
-    if (Config.Toggle.WBselfservertoggle === true) {
-        startServer()
-    }
-
-})().catch((error) => {
-    console.error("Error initializing config:", error);
-});
 
 let currentLogFile = null;
 let lastReadPosition = 0;
@@ -115,7 +78,7 @@ let lastReadPosition = 0;
  * @return {*} 
  */
 async function checkForNewFiles() {
-    const Config = await initializeConfig(); // Fetch config settings from the database
+    const Config = await initializeConfig();
     const logDirectory = Config.Directories?.LogDirectory;
 
     if (!logDirectory) {
@@ -185,574 +148,117 @@ async function readNewLogs(currentLogFile, lastReadPosition) {
     }
 }
 
+const {
+    processRoomJoin,
+    processPlayerJoined,
+    processPlayerLeft,
+    processInstanceClosed,
+    processAPIPrint,
+    processModerationManager,
+    processPlayerDestroy,
+    processPlayerLeftRoom,
+    processInitializedPlayer,
+    processUdonException,
+    processModerationResetAvatar,
+    processUSharpVideo,
+    processVideoPlayback,
+    processKickMessage,
+    processAvatarSwitch,
+    processStickersManager,
+    processAPIAnalysis,
+    processDestinationSet,
+} = require("./process/index.js")
 /**
  *
  *
  */
 async function monitorAndSend() {
-    const Config = await initializeConfig(); // Fetch config settings from the database
-
     try {
         while (true) {
-            // Check for new files in each loop iteration
             await checkForNewFiles();
-            if (currentLogFile) {
-                const currentSize = fs.statSync(currentLogFile).size;
-                if (currentSize > lastReadPosition) {
-                    const [newLogs, newLastReadPosition] = await readNewLogs(
-                        currentLogFile,
-                        lastReadPosition
-                    );
-
-                    newLogs.forEach(async (log) => {
-                        // Check log length before processing
-                        if (log.length > 10000) { // Adjust the limit as necessary
-                            main.log(`Log entry too long, skipping: ${log.length} only dev test`, "warn", "mainlog");
-                            errsleepy = `Log entry too long, skipping: ${log.length} only dev test`;
-                            LOGSCLASS.writeErrorToFile(errsleepy);
-                            return; // Skip processing this log entry
-                        }
-                        if (log.includes("Joining or Creating Room")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-
-                            resetCounter("player");
-
-                            if (Config.Toggle.vrcxdata === true) {
-                                vrcxdata();
-                            }
-
-                            main.log(
-                                `vrchat log - ${logParts.join(" ")}`,
-                                "info",
-                                "joinleavelog"
-                            );
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(logParts.join(" "));
-                            }
-                        } else if (log.includes("[Always] Instance closed:")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Always]"), 1);
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> ${logParts.join(" ")}`;
-
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
-                            ModClass.writeModerationToFile(formattedLogMessage);
-
-                            main.log(
-                                logParts.join(" "),
-                                "info",
-                                "joinleavelog"
-                            );
-
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(formattedLogMessage);
-                            }
-                        } else if (log.includes("[API] Requesting Get prints")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[API]"), 1);
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> ${logParts.join(" ")}`;
-
-                            ModClass.writeModerationToFile(formattedLogMessage);
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(formattedLogMessage);
-                            }
-                            main.log(formattedLogMessage, "info", "modlog");
-                        } else if (log.includes("ModerationManager")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> ${logParts.join(" ")}`;
-
-                            ModClass.writeModerationToFile(formattedLogMessage);
-
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(logParts.join(" "));
-                            }
-
-                            main.log(logParts.join(" "), "info", "modlog");
-
-                            const matchResult = logParts
-                                .join(" ")
-                                .match(
-                                    /A vote kick has been initiated against [^,]+/
-                                );
-                            if (matchResult) {
-                                if (Config.Toggle.TTS === true) {
-                                    getDeviceVoices().then((list11) => {
-                                        SayDeviceVoices(
-                                            `${matchResult[0]}`,
-                                            list11[0]
-                                        );
-                                    });
-                                }
-                            }
-
-                            const logString = logParts.join(" ");
-
-                            // Use regex to extract the username
-                            const usernamekick = logString.match(/([\w~]+) has been kicked/);
-                            if (usernamekick) {
-                                const username = usernamekick[1]; // The username is captured in the first group
-
-                                const timestamp = Date.now() / 1000;
-                                formattedLogMessage = `<t:${Math.round(
-                                    timestamp
-                                )}:f> ${username} has been kicked`;
-
-                                MODLOGCLASS.writeModerationlogToFile(formattedLogMessage)
-
-                            }
-
-                            // Use regex to extract the username (supports names with or without ~)
-                            const usernamewarn = logString.match(/([\w~]+) has been warned/);
-
-                            if (usernamewarn) {
-                                const username = usernamewarn[1]; // Corrected index to capture the username
-
-                                const timestamp = Math.round(Date.now() / 1000);
-                                const formattedLogMessage = `<t:${timestamp}:f> ${username} has been warned`;
-
-                                MODLOGCLASS.writeModerationlogToFile(formattedLogMessage);
-
-                            }
-
-                            const usernamemicoff = logString.match(/Microphone has been turned off for (\S+)/);
-                            if (usernamemicoff) {
-                                const username = usernamemicoff[0]; // Extracted username
-
-                                const timestamp = Date.now() / 1000;
-                                formattedLogMessage = `<t:${Math.round(
-                                    timestamp
-                                )}:f> ${username} Microphone has been turned off for`;
-
-                                MODLOGCLASS.writeModerationlogToFile(formattedLogMessage);
-                            }
-
-                        } else if (log.includes("[Behaviour] OnPlayerJoined")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-
-                            const userIdPattern = /\(usr_[\w-]+\)/; // Pattern to match user ID
-                            const userIdIndex = logParts.findIndex(part => userIdPattern.test(part));
-
-                            let displayName = null; // Declare displayName once
-
-                            // Check if logParts has enough elements
-                            if (logParts && logParts.length > 5) {
-                                // Extract display name based on the userIdIndex
-                                if (userIdIndex > 5) { // Ensure there are enough parts before the user ID
-                                    displayName = logParts.slice(5, userIdIndex).join(" ").trim(); // Extract display name
-                                } else if (userIdIndex === 5) {
-                                    displayName = logParts.slice(5, userIdIndex).join(" ").trim(); // Handle case where display name is just before user ID
-                                } else {
-                                    displayName = logParts.slice(5).join(" ").trim(); // Fallback if userIdIndex is not found
-                                }
-                            }
-
-                            const cleanedString = displayName || ""; // Default to empty string if null
-
-                            const userid = userIdIndex >= 0 ? logParts[userIdIndex] : null; // Get user ID from logParts
-                            const cleanUser = userid ? userid.replace(/[()]/g, "") : null; // Clean user ID
-
-                            StaffRosterjoin(cleanedString, cleanUser);
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> ${logParts.join(" ")}`;
-
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
-
-                            const message = `<t:${Math.round(
-                                timestamp
-                            )}:f> VRChat Log - OnPlayerJoined ${cleanedString} ${cleanUser} `;
-
-                            const notimestampmessage = `VRChat Log - OnPlayerJoined ${cleanedString} ${cleanUser} `;
-
-                            main.log(
-                                notimestampmessage,
-                                "info",
-                                "joinleavelog"
-                            );
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(message);
-                            }
-                        } else if (log.includes("[Behaviour] OnPlayerLeft")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-                            const userIdPattern = /\(usr_[\w-]+\)/; // Pattern to match user ID
-                            const userIdIndex = logParts.findIndex(part => userIdPattern.test(part));
-
-                            let displayName = null; // Declare displayName once
-                            let userid = null; // Declare userid once
-
-                            // Check if logParts has enough elements
-                            if (logParts && logParts.length > 5) {
-                                // Extract display name based on the userIdIndex
-                                if (userIdIndex > 5) { // Ensure there are enough parts before the user ID
-                                    displayName = logParts.slice(5, userIdIndex).join(" ").trim(); // Extract display name
-                                } else if (userIdIndex === 5) {
-                                    displayName = logParts.slice(5, userIdIndex).join(" ").trim(); // This will be empty
-                                } else {
-                                    displayName = logParts.slice(5).join(" ").trim(); // Fallback if userIdIndex is not found
-                                }
-                            }
-
-                            // If userIdIndex is found, get the user ID
-                            if (userIdIndex >= 0) {
-                                userid = logParts[userIdIndex]; // Get user ID from logParts
-                            }
-
-                            const cleanUser = userid ? userid.replace(/[()]/g, "") : "usr_88b4166c-cc39-4636-aed9-b4bb294ed90c"; // Clean user ID or default to "unknown"
-                            const cleanedString = displayName || "unknown"; // Default to "unknown" if null
-
-                            StaffRosterleft(cleanedString, cleanUser);
-
-                            const timestamp = Date.now() / 1000;
-                            const formattedLogMessage = `<t:${Math.round(timestamp)}:f> ${logParts.join(" ")}`;
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
-
-                            const message = `<t:${Math.round(timestamp)}:f> VRChat Log - OnPlayerLeft ${cleanedString} ${cleanUser}`;
-                            const notimestampmessage = `VRChat Log - OnPlayerLeft ${cleanedString} ${cleanUser}`;
-
-                            main.log(notimestampmessage, "info", "joinleavelog");
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(message);
-                            }
-                        } else if (log.includes("[Behaviour] Destroying")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-
-
-                            updateCounter("player", "left");
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> ${logParts.join(" ")}`;
-
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
-
-                        } else if (log.includes("[Behaviour] OnPlayerLeftRoom")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-
-                            formattedLogMessage = `${logParts.join(" ")}`;
-
-                            PlayerClass.writeplayerToFile(formattedLogMessage)
-
-                        } else if (log.includes("[Behaviour] Initialized player")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-
-                            updateCounter("player", "join");
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> ${logParts.join(" ")}`;
-
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
-
-                        } else if (
-                            log.includes("VRC.Udon.VM.UdonVMException")
-                        ) {
-                            //used for see if any errors are thrown from a client user
-                            // https://creators.vrchat.com/worlds/udon/debugging-udon-projects/
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-                            main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(logParts.join(" "));
-                            }
-                        } else if (
-                            log.includes(
-                                "[Behaviour] Event: Moderation_ResetShowUserAvatarToDefault"
-                            )
-                        ) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> ${logParts.join(" ")}`;
-
-                            ModResetShowUserAvatarClass.writeModerationResetShowUserAvatarToFile(
-                                formattedLogMessage
-                            );
-                            main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(logParts.join(" "));
-                            }
-                        } else if (log.includes("USharpVideo")) {
-                            // Clean out the long 'resolved to' URL if present
-                            const cleanedLog = log.replace(/resolved to\s+['"]https?:\/\/[^\s'"]+['"]/, "resolved to");
-
-                            const logParts = cleanedLog
-                                .split(" ")
-                                .filter((part) => part !== "");
-
-                            main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(logParts.join(" "));
-                            }
-                        } else if (log.includes("Video Playback")) {
-                            // Clean out the long 'resolved to' URL if present
-                            const cleanedLog = log.replace(/resolved to\s+['"]https?:\/\/[^\s'"]+['"]/, "resolved to");
-
-                            const logParts = cleanedLog
-                                .split(" ")
-                                .filter((part) => part !== "");
-
-                            main.log(logParts.join(" "), "info", "modlog");
-
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(logParts.join(" "));
-                            }
-                        } else if (
-                            log.includes(
-                                "[Behaviour] Received executive message: You have been kicked from the instance"
-                            )
-                        ) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            main.log(
-                                logParts.join(" "),
-                                "info",
-                                "joinleavelog"
-                            );
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(logParts.join(" "));
-                            }
-                        } else if (log.includes("Switching ")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf(""), 1);
-
-                            const matchResult = logParts
-                                .join(" ")
-                                .match(/avatar (.*)/);
-                            const matchResult2 = logParts
-                                .join(" ")
-                                .match(/Switching (.*?) to/);
-
-                            if (matchResult && matchResult2) {
-                                const avatarneedName = matchResult[1];
-                                const username = matchResult2[1];
-
-                                const timestamp = Date.now() / 1000;
-                                formattedLogMessage = `<t:${Math.round(
-                                    timestamp
-                                )}:f> vrchat log - user ${username} switching to ${avatarneedName}`;
-
-                                if (Config.Toggle.Webhook === true) {
-                                sendToWebhook(formattedLogMessage);
-                                }
-                                AVISwitchingClass.writeModerationToFile(
-                                    formattedLogMessage
-                                );
-                                if (Config.Toggle.AviStwitch === true) {
-                                    main.log(
-                                        `vrchat log - user ${username} switching to ${avatarneedName}`,
-                                        "info",
-                                        "vrchatswitchavilog"
-                                    );
-                                }
-                            } else {
-                                // Log more details for debugging
-                                const timestamp = Date.now();
-                                const formattedLogMessage = `<t:${Math.round(
-                                    timestamp / 1000
-                                )}:f> Invalid log format or missing data: ${logParts}`;
-
-                                // Process and write the log
-                                AVISwitchinglogsClass.writeModerationToFile(
-                                    formattedLogMessage
-                                );
-                                main.log(
-                                    "Invalid log format or missing data",
-                                    "warn",
-                                    "vrchatswitchavilog"
-                                );
-                            }
-                        } else if (
-                            log.includes("[StickersManager] ")
-                        ) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf(""), 1);
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> vrchat logs - StickersManager ${logParts.join(
-                                " "
-                            )}`;
-
-                            ModClass.writeModerationToFile(formattedLogMessage);
-
-                            main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(formattedLogMessage);
-                            }
-                        } else if (
-                            log.includes("[API] Requesting Get analysis")
-                        ) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf(""), 1);
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> vrchat logs - API Analysis Requested ${logParts.join(
-                                " "
-                            )}`;
-
-                            ModClass.writeModerationToFile(formattedLogMessage);
-
-                            main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook === true) {
-                            sendToWebhook(formattedLogMessage);
-                            }
-                        } else if (
-                            log.includes("[Behaviour] Destination set: ")
-                        ) {
-                            try {
-                                const logParts = log
-                                    .split(" ")
-                                    .filter((part) => part !== "");
-                                logParts.splice(
-                                    logParts.indexOf("[Behaviour]"),
-                                    1
-                                );
-
-                                const destinationPart = logParts.find((part) =>
-                                    part.startsWith("wrld_")
-                                );
-
-                                if (destinationPart) {
-                                    const subparts = destinationPart.split(":");
-                                    if (subparts.length > 1) {
-                                        const worldId = subparts[0].trim(); // Trim any leading or trailing whitespaces
-                                        let instanceInfo = subparts[1].trim();
-
-                                        // Remove the query parameters from instanceInfo
-                                        const queryIndex =
-                                            instanceInfo.indexOf("?");
-                                        if (queryIndex !== -1) {
-                                            instanceInfo =
-                                                instanceInfo.substring(
-                                                    0,
-                                                    queryIndex
-                                                );
-                                        }
-
-                                        // Extract the number from instanceInfo
-                                        const instanceId = instanceInfo.split("~")[0]; // Get the part before the first '~'
-                                        // Extract the group ID from instanceInfo
-                                        const groupIdMatch = instanceInfo.match(/group\(([^)]+)\)/);
-                                        const groupId = groupIdMatch ? groupIdMatch[1] : null; // Get the group ID from the match
-
-                                        const newInfo = {
-                                            worldId: worldId,
-                                            groupId: groupId,
-                                            instanceId: instanceId
-                                        };
-
-                                        if (Config.Toggle.WBselfservertoggle === true) {
-                                        updateInstanceInfo(newInfo);
-                                        }
-
-                                        main.log(
-                                            `vrchat log - You have joined ID: ${worldId}`,
-                                            "info",
-                                            "joinleavelog"
-                                        );
-                                        main.log(
-                                            `vrchat log - You have joined Instance Info: ${instanceInfo}`,
-                                            "info",
-                                            "joinleavelog"
-                                        );
-                                        main.log(
-                                            `vrchat log - You have joined Instance id: ${instanceId}`,
-                                            "info",
-                                            "joinleavelog"
-                                        );
-
-                                        const timestamp = Date.now() / 1000;
-                                        formattedLogMessage = `<t:${Math.round(
-                                            timestamp
-                                        )}:f> You have joined [WORLD URL](https://vrchat.com/home/launch?worldId=${worldId}&instanceId=${instanceInfo})`;
-                                        if (Config.Toggle.Webhook === true) {
-                                        sendToWebhook(formattedLogMessage);
-                                        }
-                                    } else {
-                                        main.log(
-                                            "Error: Unable to extract world ID and instance info",
-                                            "info",
-                                            "joinleavelog"
-                                        );
-                                    }
-                                }
-                            } catch (error) {
-                                errsleepy = `error stack: ${error}`;
-                                LOGSCLASS.writeErrorToFile(errsleepy);
-                            }
-                        }
-                    });
-                    lastReadPosition = newLastReadPosition;
-                } else {
-                    main.log(
-                        "No log file selected. Waiting for a new log file...",
-                        "info",
-                        "mainlog"
-                    );
+            if (!currentLogFile) {
+                main.log("No log file selected. Waiting for a new log file...", "info", "mainlog");
+                await delay(1000);
+                continue;
+            }
+
+            const currentSize = fs.statSync(currentLogFile).size;
+            if (currentSize <= lastReadPosition) {
+                await delay(1000);
+                continue;
+            }
+
+            const [newLogs, newLastReadPosition] = await readNewLogs(currentLogFile, lastReadPosition);
+
+            for (const log of newLogs) {
+                try {
+                    if (log.length > 10000) {
+                        logTooLong(log);
+                        continue;
+                    }
+
+                    if (log.includes("Joining or Creating Room")) {
+                        await processRoomJoin(log);
+                    } else if (log.includes("[Always] Instance closed:")) {
+                        await processInstanceClosed(log);
+                    } else if (log.includes("[API] Requesting Get prints")) {
+                        await processAPIPrint(log);
+                    } else if (log.includes("ModerationManager")) {
+                        await processModerationManager(log);
+                    } else if (log.includes("[Behaviour] OnPlayerJoined")) {
+                        await processPlayerJoined(log);
+                    } else if (log.includes("[Behaviour] OnPlayerLeft")) {
+                        await processPlayerLeft(log,);
+                    } else if (log.includes("[Behaviour] Destroying")) {
+                        await processPlayerDestroy(log);
+                    } else if (log.includes("[Behaviour] OnPlayerLeftRoom")) {
+                        await processPlayerLeftRoom(log);
+                    } else if (log.includes("[Behaviour] Initialized player")) {
+                        await processInitializedPlayer(log);
+                    } else if (log.includes("VRC.Udon.VM.UdonVMException")) {
+                        await processUdonException(log,);
+                    } else if (log.includes("[Behaviour] Event: Moderation_ResetShowUserAvatarToDefault")) {
+                        await processModerationResetAvatar(log);
+                    } else if (log.includes("USharpVideo")) {
+                        await processUSharpVideo(log);
+                    } else if (log.includes("Video Playback")) {
+                        await processVideoPlayback(log);
+                    } else if (log.includes("[Behaviour] Received executive message: You have been kicked from the instance")) {
+                        await processKickMessage(log);
+                    } else if (log.includes("Switching ")) {
+                        await processAvatarSwitch(log);
+                    } else if (log.includes("[StickersManager] ")) {
+                        await processStickersManager(log);
+                    } else if (log.includes("[API] Requesting Get analysis")) {
+                        await processAPIAnalysis(log);
+                    } else if (log.includes("[Behaviour] Destination set: ")) {
+                        await processDestinationSet(log);
+                    }
+                } catch (logError) {
+                    const err = `Error processing log: ${log}\n${logError}`;
+                    LOGSCLASS.writeErrorToFile(err);
+                    main.log(err, "warn", "mainlog");
                 }
             }
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust the polling interval as needed
+
+            lastReadPosition = newLastReadPosition;
+            await delay(1000);
         }
     } catch (error) {
-        errsleepy = `error stack of monitor of vrchat: ${error.message}`;
-        LOGSCLASS.writeErrorToFile(errsleepy);
-        main.log(errsleepy, "info", "mainlog");
+        const err = `Error in monitorAndSend loop: ${error.message}`;
+        LOGSCLASS.writeErrorToFile(err);
+        main.log(err, "error", "mainlog");
     }
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function logTooLong(log) {
+    const message = `Log entry too long, skipping: ${log.length} only dev test`;
+    main.log(message, "warn", "mainlog");
+    LOGSCLASS.writeErrorToFile(message);
 }
 
 monitorAndSend();
