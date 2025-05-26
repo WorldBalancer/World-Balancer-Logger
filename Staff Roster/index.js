@@ -24,7 +24,7 @@ SOFTWARE.
 
 const fs = require("fs");
 const FuzzySet = require("fuzzyset");
-const getConfig = require("../models/getConfig"); // Import the getConfig function
+const getConfig = require("../Configfiles/getConfig"); // Import the getConfig function
 const { LOGSCLASS, StaffROSter } = require("../functions/logsclass");
 const main = require("../main");
 const { sendToWebhook } = require("../webhook/index");

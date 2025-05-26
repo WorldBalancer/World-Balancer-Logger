@@ -24,7 +24,7 @@ SOFTWARE.
 
 const { LOGSCLASS } = require("../functions/logsclass");
 const axios = require("axios");
-const getConfig = require("../models/getConfig");
+const getConfig = require("../Configfiles/getConfig");
 
 /**
  *

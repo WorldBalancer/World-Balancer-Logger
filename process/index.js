@@ -1,5 +1,5 @@
 const main = require("../main.js");
-const getConfig = require("../models/getConfig.js");
+const getConfig = require("../Configfiles/getConfig.js");
 
 /**
  *

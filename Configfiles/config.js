@@ -2,74 +2,45 @@
 MIT License
 
 Copyright (c) 2025 World Balancer
-Permission is hereby granted, free of charge...
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
-const fs = require("fs");
-const path = require("path");
-const { app } = require("electron");
-const Config = require("../models/Config");
-const { LOGSCLASS } = require("../functions/logsclass.js");
+const { DataTypes } = require("sequelize");
+const sequelize = require("./configsqlite");
 
-// Get user-specific app path
-const appInstallPath = app.getPath("userData");
-const logDir = path.join(appInstallPath, "log");
-const configDir = path.join(appInstallPath, "config");
+const Config = sequelize.define("Config", {
+    keyid: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        primaryKey: true,
+    },
+    value: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+    },
+}, {
+    tableName: "configs",
+});
 
-/**
- * Ensure the target directory exists.
- * @param {string} dirPath
- */
-function ensureDirectory(dirPath) {
-    if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
-    }
-}
+(async () => {
+    await sequelize.sync();
+})();
 
-// Ensure necessary folders exist
-ensureDirectory(logDir);
-ensureDirectory(configDir);
-
-/**
- * Fetch all configs from the database and parse them.
- * @returns {Promise<Object>}
- */
-async function fetchConfig() {
-    try {
-        const configs = await Config.findAll();
-        const result = {};
-
-        for (const config of configs) {
-            const { keyid, value } = config;
-            try {
-                result[keyid] = JSON.parse(value);
-            } catch {
-                // Fallback to raw value if parsing fails
-                console.warn(`[Config Warning] Failed to parse key "${keyid}". Using raw value.`);
-                result[keyid] = value;
-            }
-        }
-
-        return result;
-    } catch (err) {
-        const msg = `Error fetching config: ${err.message}`;
-        console.error(msg);
-        await LOGSCLASS.writeErrorToFile(msg);
-        throw err;
-    }
-}
-
-/**
- * Main entry to initialize configuration.
- * @returns {Promise<{ config: Object }>}
- */
-async function initializeConfigAndUser() {
-    const config = await fetchConfig();
-    return { config };
-}
-
-module.exports = {
-    initializeConfigAndUser,
-    configdir: configDir,
-    logpath: logDir,
-};
+module.exports = Config;

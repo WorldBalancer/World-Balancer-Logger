@@ -31,7 +31,7 @@ const { app } = require("electron");
 const appInstallPath = app.getPath("userData");
 const logpath = path.join(appInstallPath, "log");
 const configDir = path.join(appInstallPath, "config");
-const getConfig = require("./models/getConfig.js");
+const getConfig = require("./Configfiles/getConfig.js");
 
 let errsleepy = "";
 

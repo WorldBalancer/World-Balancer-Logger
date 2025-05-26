@@ -26,9 +26,9 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const fs = require("fs").promises;
 const os = require("os");
-const sequelize = require("./models/configsqlite");
-const Config = require("./models/Config");
-const getConfig = require("./models/getConfig");
+const sequelize = require("./Configfiles/configsqlite");
+const Config = require("./Configfiles/Config");
+const getConfig = require("./Configfiles/getConfig");
 const { version, name: appName } = require("./package.json");
 const isWindows = process.platform === "win32";
 
