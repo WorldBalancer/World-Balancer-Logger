@@ -76,6 +76,13 @@ class ModClass {
  * @class ModResetShowUserAvatarClass
  */
 class ModResetShowUserAvatarClass {
+    /**
+     *
+     *
+     * @static
+     * @param {*} formattedLogMessage
+     * @memberof ModResetShowUserAvatarClass
+     */
     static async writeModerationResetShowUserAvatarToFile(formattedLogMessage) {
         const { logpath } = require("../Configfiles/config.js");
         const Moderationlog = path.join(
@@ -147,6 +154,13 @@ class AVISwitchinglogsClass {
  * @class PlayerClass
  */
 class PlayerClass {
+    /**
+     *
+     *
+     * @static
+     * @param {*} formattedLogMessage
+     * @memberof PlayerClass
+     */
     static async writeplayerToFile(formattedLogMessage) {
         const { logpath } = require("../Configfiles/config.js");
         const playerlog = path.join(logpath, "player.log");
