@@ -42,7 +42,7 @@ async function initializeConfig() {
 }
 
 // Initialize counters
-let counters = {
+const counters = {
     player: {
         size: 0,
         limit: 100, // Add a limit to the counter
