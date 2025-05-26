@@ -251,10 +251,21 @@ async function monitorAndSend() {
     }
 }
 
+/**
+ *
+ *
+ * @param {*} ms
+ * @return {*} 
+ */
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ *
+ *
+ * @param {*} log
+ */
 function logTooLong(log) {
     const message = `Log entry too long, skipping: ${log.length} only dev test`;
     main.log(message, "warn", "mainlog");
