@@ -24,8 +24,8 @@ SOFTWARE.
 
 const fetch = require("node-fetch");
 const { LOGSCLASS } = require("../functions/logsclass.js");
-const main = require("../main.js"); // Import the main function
-const getConfig = require("../Configfiles/getConfig.js"); // Import the getConfig function
+const main = require("../main.js");
+const getConfig = require("../Configfiles/getConfig.js");
 
 /**
  *

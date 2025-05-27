@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const { LOGSCLASS } = require("../functions/logsclass");
+const { LOGSCLASS } = require("../functions/logsclass.js");
 const axios = require("axios");
-const getConfig = require("../Configfiles/getConfig");
+const getConfig = require("../Configfiles/getConfig.js");
 
 /**
  *

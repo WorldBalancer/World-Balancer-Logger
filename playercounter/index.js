@@ -25,7 +25,7 @@ SOFTWARE.
 const main = require("../main.js");
 const { sendToWebhook } = require("../webhook/index.js");
 const { LOGSCLASS } = require("../functions/logsclass.js");
-const getConfig = require("../Configfiles/getConfig.js"); // Import the getConfig function
+const getConfig = require("../Configfiles/getConfig.js");
 
 /**
  *

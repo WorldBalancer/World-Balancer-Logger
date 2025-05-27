@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 const { DataTypes } = require("sequelize");
-const sequelize = require("./configsqlite");
+const sequelize = require("./configsqlite.js");
 
 const Config = sequelize.define("Config", {
     keyid: {

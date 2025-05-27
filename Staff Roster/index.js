@@ -24,10 +24,10 @@ SOFTWARE.
 
 const fs = require("fs");
 const FuzzySet = require("fuzzyset");
-const getConfig = require("../Configfiles/getConfig"); // Import the getConfig function
-const { LOGSCLASS, StaffROSter } = require("../functions/logsclass");
-const main = require("../main");
-const { sendToWebhook } = require("../webhook/index");
+const getConfig = require("../Configfiles/getConfig.js");
+const { LOGSCLASS, StaffROSter } = require("../functions/logsclass.js");
+const main = require("../main.js");
+const { sendToWebhook } = require("../webhook/index.js");
 
 // Initialize Configuration
 /**

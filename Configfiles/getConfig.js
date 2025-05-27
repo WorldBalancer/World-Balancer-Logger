@@ -22,8 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const Config = require('./Config');
-const { LOGSCLASS } = require('../functions/logsclass'); // Optional: For logging errors
+const Config = require('./Config.js');
+const { LOGSCLASS } = require('../functions/logsclass.js'); // Optional: For logging errors
 
 /**
  *
