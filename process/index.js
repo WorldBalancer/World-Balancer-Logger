@@ -16,7 +16,11 @@ async function initializeConfig() {
             AviStwitch: await getConfig("Toggle.AviStwitch"),
             TTS: await getConfig("Toggle.TTS"),
             WBselfservertoggle: await getConfig("Toggle.WBselfservertoggle"),
-            Webhook: await getConfig("Toggle.Webhook")
+            Webhook: await getConfig("Toggle.Webhook"),
+            avilogger: await getConfig("Toggle.avilogger"),
+        },
+        Userid: {
+            discordid: await getConfig("Userid.discordid")
         },
     };
     return Config;
@@ -694,6 +698,91 @@ async function processDestinationSet(log) {
     }
 }
 
+/**
+ *
+ *
+ * @param {*} log
+ * @return {*} 
+ */
+async function processAvatarid(log) {
+    const Config = await initializeConfig();
+    if (Config.Toggle.avilogger === true) {
+        // Configuration constants
+        const retryCount = 0
+        const MAX_RETRIES = 3;
+        const RATE_LIMIT_DELAY = 60000;
+        const BASE_API_URL = 'https://avatar.worldbalancer.com/v5/vrchat';
+        const ENDPOINT = `${BASE_API_URL}/avatars/htfdcel/store/putavatarExternal`;
+
+        // Use discordId from config
+        const discordId = Config.Userid.discordid; // Note: case-sensitive match to your config
+
+        // Validate configuration
+        if (!discordId) {
+            throw new Error('Discord ID not configured');
+        }
+
+        // Extract the full avatar ID with avtr_ prefix
+        const avatarIdMatch = log.match(/avatars\/(avtr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i);
+        if (!avatarIdMatch) {
+            throw new Error("No valid avatar ID found in the log");
+        }
+
+        const fullAvatarId = avatarIdMatch[1]; // This now includes "avtr_" prefix
+        const postData = {
+            id: fullAvatarId, // Using the full ID with prefix
+            discordId: discordId
+        };
+
+        try {
+            const response = await fetch(ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(postData)
+            });
+
+            // Handle response
+            if (!response.status === "404") {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(`API request failed: ${response.status}`, {
+                    cause: errorData
+                });
+            }
+
+            const responseData = await response.json();
+
+            const result = {
+                success: true,
+                avatarId: fullAvatarId,
+                discordId: discordId,
+                apiResponse: responseData,
+                retries: retryCount,
+            };
+
+            // Detailed console output
+            console.log("✅ Avatar Processing Successful", {
+                "Avatar ID": result.avatarId,
+                "Discord ID": result.discordId,
+                "API Response": result.apiResponse,
+                "Retry Attempts": result.retries,
+            });
+
+            return result;
+
+        } catch (error) {
+            console.error(`Error processing avatar (attempt ${retryCount + 1}):`, error.message);
+            if (retryCount < MAX_RETRIES) {
+                await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY));
+                return processAvatarid(log, discordId, retryCount + 1);
+            }
+            throw error;
+        }
+    }
+}
+
 // Export Functions
 module.exports = {
     processRoomJoin,
@@ -711,6 +800,7 @@ module.exports = {
     processVideoPlayback,
     processKickMessage,
     processAvatarSwitch,
+    processAvatarid,
     processStickersManager,
     processAPIAnalysis,
     processDestinationSet,

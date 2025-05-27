@@ -1,4 +1,4 @@
-/*
+<!--
 MIT License
 
 Copyright (c) 2025 World Balancer
@@ -20,23 +20,17 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-*/
+-->
 
-const { DataTypes } = require("sequelize");
-const sequelize = require("./configsqlite.js");
+<!DOCTYPE html>
+<html>
 
-const Config = sequelize.define("Config", {
-    keyid: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        primaryKey: true,
-    },
-    value: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-    },
-}, {
-    tableName: "configs", // Ensures Sequelize uses the correct table name
-});
+<head>
+    <title>Loading...</title>
+</head>
 
-module.exports = Config;
+<body>
+    <h2>Loading World Balancer Logger...</h2>
+</body>
+
+</html>

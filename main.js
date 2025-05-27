@@ -28,14 +28,44 @@ const fs = require("fs").promises;
 const os = require("os");
 const sequelize = require("./Configfiles/configsqlite");
 const Config = require("./Configfiles/Config");
-const getConfig = require("./Configfiles/getConfig");
 const { version, name: appName } = require("./package.json");
+
 const isWindows = process.platform === "win32";
 
-// IPC: Get user data path
-ipcMain.handle("get-user-data-path", () => app.getPath("userData"));
+let mainWindow;
 
-// Determine SQLite database path
+// ─────────────────────────────────────
+// IPC Handlers
+ipcMain.handle("get-user-data-path", () => app.getPath("userData"));
+ipcMain.handle("load-config", loadConfig);
+ipcMain.handle("save-config", async (_, config) => saveConfigRecursively(config));
+ipcMain.handle("get-app-version", () => version);
+
+// ─────────────────────────────────────
+// Log dispatching
+/** @type {*} */
+let logQueue = [];
+/**
+ *
+ *
+ * @param {*} message
+ * @param {string} [level="info"]
+ * @param {string} [type="mainlog"]
+ */
+function log(message, level = "info", type = "mainlog") {
+    const windows = BrowserWindow.getAllWindows();
+    const logData = { type, message: `${message}`, level };
+    if (windows.length > 0) {
+        windows[0].webContents.executeJavaScript(`
+            window.dispatchEvent(new MessageEvent('message', { data: ${JSON.stringify(logData)} }));
+        `);
+    } else {
+        logQueue.push(logData);
+    }
+}
+
+// ─────────────────────────────────────
+// Config DB path
 /**
  *
  *
@@ -48,7 +78,6 @@ function getDatabasePath() {
     return path.join(baseDir, "config.sqlite");
 }
 
-// Check if database file exists
 /**
  *
  *
@@ -64,25 +93,27 @@ async function doesDatabaseExist() {
     }
 }
 
-// Recursively save config
+// ─────────────────────────────────────
+// Config Loader/Saver
 /**
  *
  *
  * @param {*} obj
  * @param {string} [parentKey=""]
+ * @param {*} [collected=[]]
  */
-async function saveConfigRecursively(obj, parentKey = "") {
+async function saveConfigRecursively(obj, parentKey = "", collected = []) {
     for (const [key, value] of Object.entries(obj)) {
         const currentKey = parentKey ? `${parentKey}.${key}` : key;
         if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-            await saveConfigRecursively(value, currentKey);
+            await saveConfigRecursively(value, currentKey, collected);
         } else {
-            await Config.upsert({ keyid: currentKey, value: JSON.stringify(value) });
+            collected.push({ keyid: currentKey, value: JSON.stringify(value) });
         }
     }
+    if (parentKey === "") await Promise.all(collected.map(e => Config.upsert(e)));
 }
 
-// Load full config from DB and rebuild nested object
 /**
  *
  *
@@ -111,7 +142,6 @@ async function loadConfig() {
     }
 }
 
-// Flatten nested object keys (dot notation)
 /**
  *
  *
@@ -132,7 +162,8 @@ function flattenKeys(obj, parentKey = "") {
     return keys;
 }
 
-// Default config structure
+// ─────────────────────────────────────
+// Default config and init
 /**
  *
  *
@@ -140,7 +171,6 @@ function flattenKeys(obj, parentKey = "") {
  */
 async function getDefaultConfig() {
     const baseDir = path.join(os.homedir(), "AppData", "LocalLow", "VRChat", "VRChat");
-
     return {
         Directories: { LogDirectory: baseDir },
         dirstaffroster: {
@@ -158,90 +188,91 @@ async function getDefaultConfig() {
             TTS: false,
             staffrostertoggle: false,
             WBselfservertoggle: true,
+            avilogger: false,
         },
+        Userid: {
+            discordid: "ENTERYOURDISCORDID"
+        }
     };
 }
 
-// Save default config on first launch
+/**
+ *
+ *
+ */
 async function setupInitialConfig() {
     const defaultConfig = await getDefaultConfig();
     await saveConfigRecursively(defaultConfig);
 }
 
-// Update config with missing keys
 /**
  *
  *
  * @param {*} defaultConfig
  * @param {*} currentConfig
+ * @param {*} existingMap
  * @param {string} [parentKey=""]
  */
-async function updateMissingKeys(defaultConfig, currentConfig, parentKey = "") {
+async function updateMissingKeys(defaultConfig, currentConfig, existingMap, parentKey = "") {
     for (const [key, defaultValue] of Object.entries(defaultConfig)) {
         const currentKey = parentKey ? `${parentKey}.${key}` : key;
-
         if (typeof defaultValue === "object" && defaultValue !== null && !Array.isArray(defaultValue)) {
-            await updateMissingKeys(defaultValue, currentConfig[key] || {}, currentKey);
+            await updateMissingKeys(defaultValue, currentConfig[key] || {}, existingMap, currentKey);
         } else {
-            const existingValue = await getConfig(currentKey);
-            if (existingValue === null) {
-                
+            if (!existingMap.has(currentKey)) {
                 await Config.upsert({ keyid: currentKey, value: JSON.stringify(defaultValue) });
             }
         }
     }
 }
 
-// Remove unused config keys
-async function removeUnusedKeys() {
-    const currentConfig = await loadConfig();
-    const defaultConfig = await getDefaultConfig();
-    const defaultKeys = new Set(flattenKeys(defaultConfig));
-    const currentKeys = flattenKeys(currentConfig);
-
-    for (const key of currentKeys) {
-        if (!defaultKeys.has(key)) {
-            
-            await Config.destroy({ where: { keyid: key } });
-        }
-    }
-}
-
-// Ensure config is updated
-async function migrateConfig() {
-    const currentConfig = await loadConfig();
-    const defaultConfig = await getDefaultConfig();
-    await updateMissingKeys(defaultConfig, currentConfig);
-    await removeUnusedKeys();
-}
-
-// Full DB initialization logic
-async function initializeDatabase() {
-    try {
-        const dbExists = await doesDatabaseExist();
-        await sequelize.authenticate();
-        await sequelize.sync({ alter: true });
-
-        if (!dbExists) {
-            
-            await setupInitialConfig();
-        } else {
-            
-            await migrateConfig();
-        }
-    } catch (error) {
-        console.error("initializeDatabase():", error);
-    }
-}
-
-// Electron window creation
 /**
  *
  *
- * @param {*} callback
+ * @param {*} defaultConfig
+ * @param {*} currentConfig
  */
-function createWindow(callback) {
-    const win = new BrowserWindow({
+async function removeUnusedKeys(defaultConfig, currentConfig) {
+    const defaultKeys = new Set(flattenKeys(defaultConfig));
+    const currentKeys = flattenKeys(currentConfig);
+    const toDelete = currentKeys.filter(key => !defaultKeys.has(key));
+    await Promise.all(toDelete.map(key => Config.destroy({ where: { keyid: key } })));
+}
+
+/**
+ *
+ *
+ * @return {*} 
+ */
+async function initializeDatabase() {
+    const dbExists = await doesDatabaseExist();
+    if (!dbExists) {
+        console.log("First-time setup: initializing default config.");
+        await sequelize.sync();
+        await setupInitialConfig();
+        return true;
+    } else {
+        await sequelize.sync({ alter: true });
+        const [defaultConfig, currentConfig, configEntries] = await Promise.all([
+            getDefaultConfig(),
+            loadConfig(),
+            Config.findAll()
+        ]);
+        const configMap = new Set(configEntries.map(e => e.keyid));
+        await updateMissingKeys(defaultConfig, currentConfig, configMap);
+        await removeUnusedKeys(defaultConfig, currentConfig);
+        return false;
+    }
+}
+
+// ─────────────────────────────────────
+// Window setup
+/**
+ *
+ *
+ */
+function createLoadingWindow() {
+    mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         icon: path.join(__dirname, "assets", "icon.png"),
@@ -250,67 +281,58 @@ function createWindow(callback) {
             contextIsolation: true,
             nodeIntegration: false,
         },
+        show: true,
     });
 
-    win.loadFile(path.join(__dirname, "index.html"));
-    win.webContents.once("did-finish-load", () => {
-        win.webContents.send("app-version", version);
-        callback(win);
+    mainWindow.once("ready-to-show", () => {
+        mainWindow.show();
     });
+
+    mainWindow.loadFile(path.join(__dirname, "loading.html"));
 }
 
-// Buffered logging
-let logQueue = [];
 /**
  *
  *
- * @param {*} message
- * @param {string} [level="info"]
- * @param {string} [type="mainlog"]
+ * @param {*} isFirstLaunch
  */
-function log(message, level = "info", type = "mainlog") {
-    const windows = BrowserWindow.getAllWindows();
-    const logData = {
-        type,
-        message: `${message}`,
-        level
-    };
-
-    if (windows.length > 0) {
-        windows[0].webContents.executeJavaScript(`
-            window.dispatchEvent(new MessageEvent('message', { data: ${JSON.stringify(logData)} }));
-        `);
-    } else {
-        logQueue.push(logData);
-    }
-}
-
-// IPC Handlers
-ipcMain.handle("load-config", loadConfig);
-ipcMain.handle("save-config", async (_, config) => saveConfigRecursively(config));
-ipcMain.handle("get-app-version", () => version);
-
-// App lifecycle
-app.on("ready", async () => {
-    await initializeDatabase();
-    createWindow(() => {
+function loadMainWindow(isFirstLaunch) {
+    mainWindow.loadFile(path.join(__dirname, "index.html")).then(() => {
+        mainWindow.webContents.send("app-version", version);
+        if (isFirstLaunch) {
+            log("Welcome! First time setup complete.", "info");
+        }
         logQueue.forEach(entry => log(entry.message, entry.level, entry.type));
         logQueue = [];
+        //mainWindow.webContents.openDevTools(); // Optional
     });
-});
+}
 
-app.on("activate", async () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        await initializeDatabase();
-        createWindow(() => {
-            logQueue.forEach(entry => log(entry.message, entry.level, entry.type));
-            logQueue = [];
-        });
-    }
+// ─────────────────────────────────────
+// App lifecycle
+app.on("ready", () => {
+    createLoadingWindow();
+    mainWindow.webContents.once("did-finish-load", async () => {
+        console.log("Loading screen ready, initializing DB...");
+        try {
+            const isFirstLaunch = await initializeDatabase();
+            console.log("Database init complete, launching main UI...");
+            loadMainWindow(isFirstLaunch);
+        } catch (err) {
+            console.error("Database init failed:", err);
+            log(`Database setup error: ${err.message}`, "error");
+        }
+    });
 });
 
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();
+});
+
+app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        createLoadingWindow();
+    }
 });
 
 module.exports = { log };

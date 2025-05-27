@@ -164,6 +164,7 @@ const {
     processVideoPlayback,
     processKickMessage,
     processAvatarSwitch,
+    processAvatarid,
     processStickersManager,
     processAPIAnalysis,
     processDestinationSet,
@@ -176,6 +177,7 @@ async function monitorAndSend() {
     try {
         while (true) {
             await checkForNewFiles();
+            console.log('hello world')
             if (!currentLogFile) {
                 main.log("No log file selected. Waiting for a new log file...", "info", "mainlog");
                 await delay(1000);
@@ -183,6 +185,8 @@ async function monitorAndSend() {
             }
 
             const currentSize = fs.statSync(currentLogFile).size;
+            console.log(currentSize)
+            console.log('hello world')
             if (currentSize <= lastReadPosition) {
                 await delay(1000);
                 continue;
@@ -231,6 +235,8 @@ async function monitorAndSend() {
                         await processStickersManager(log);
                     } else if (log.includes("[API] Requesting Get analysis")) {
                         await processAPIAnalysis(log);
+                    } else if (log.includes("[API] Requesting Get avatars")) {
+                        await processAvatarid(log);
                     } else if (log.includes("[Behaviour] Destination set: ")) {
                         await processDestinationSet(log);
                     }

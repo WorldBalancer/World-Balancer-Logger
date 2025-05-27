@@ -23,7 +23,6 @@ SOFTWARE.
 */
 
 const Config = require('./Config.js');
-const { LOGSCLASS } = require('../functions/logsclass.js');
 
 /**
  *
@@ -32,25 +31,8 @@ const { LOGSCLASS } = require('../functions/logsclass.js');
  * @return {*} 
  */
 async function getConfig(key) {
-    if (typeof key !== "string") {
-        LOGSCLASS?.writeErrorToFile?.(`Invalid config key type: ${typeof key}`);
-        return null;
-    }
-
-    try {
-        const config = await Config.findOne({ where: { keyid: key } });
-        if (!config) return null;
-
-        try {
-            return JSON.parse(config.value);
-        } catch (parseError) {
-            LOGSCLASS?.writeErrorToFile?.(`Failed to parse config for key "${key}": ${parseError.message}`);
-            return null;
-        }
-    } catch (dbError) {
-        LOGSCLASS?.writeErrorToFile?.(`Database error in getConfig("${key}"): ${dbError.message}`);
-        return null;
-    }
+    const config = await Config.findOne({ where: { keyid: key } });
+    return config ? JSON.parse(config.value) : null;
 }
 
 module.exports = getConfig;

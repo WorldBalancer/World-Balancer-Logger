@@ -148,6 +148,11 @@ SOFTWARE.
             color: #ff5eaa;
         }
 
+        .required-field {
+            border: 2px solid #ff4444 !important;
+            background-color: #330000 !important;
+        }
+
         footer {
             padding: 20px;
             background-color: #111;
@@ -309,347 +314,424 @@ SOFTWARE.
 
             <div class="tab-pane fade" id="settings" role="tabpanel">
                 <div class="p-3 bg-dark border rounded border-secondary">
-                <!-- Settings Tab -->
-                <div class="row">
-                    <!-- Warning Modal -->
-                    <div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel"
-                        aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content bg-dark text-white">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="warningModalLabel">
-                                        Warning
-                                    </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body" id="warningModalBody">
-                                    <!-- Warning message will be inserted here -->
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        Close
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Toggle Options -->
-                    <div class="col-md-6 mb-4">
-                        <div class="card bg-dark text-white">
-                            <div class="card-header">Toggle Options</div>
-                            <div class="card-body">
-                                <div id="toggleOptions"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Main Logger Webhooks -->
-                    <div class="col-md-12 mb-4">
-                        <div class="card bg-dark text-white">
-                            <div class="card-header">
-                                Main Logger Webhooks
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-dark table-striped table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>URL</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="mainloggerTableBody">
-                                            <!-- Mainlogger rows will be dynamically inserted here -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <form id="mainloggerSettingsForm">
-                                    <div class="mb-3">
-                                        <label for="mainloggerURL" class="form-label">Webhook URL:</label>
-                                        <input type="text" class="form-control" id="mainloggerURL"
-                                            placeholder="Enter Webhook URL" />
+                    <!-- Settings Tab -->
+                    <div class="row">
+                        <!-- Warning Modal -->
+                        <div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel"
+                            aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content bg-dark text-white">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="warningModalLabel">
+                                            Warning
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
                                     </div>
-                                    <button type="button" class="btn btn-primary" onclick="addMainlogger()">
-                                        Add Main Logger Webhook
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Auth Webhooks -->
-                    <div class="col-md-12 mb-4">
-                        <div class="card bg-dark text-white">
-                            <div class="card-header">Auth Webhooks</div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-dark table-striped table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>URL</th>
-                                                <th>Token</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="authwebhookTableBody">
-                                            <!-- Auth webhook rows will be dynamically inserted here -->
-                                        </tbody>
-                                    </table>
+                                    <div class="modal-body" id="warningModalBody">
+                                        <!-- Warning message will be inserted here -->
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            Close
+                                        </button>
+                                    </div>
                                 </div>
-                                <form id="authwebhookSettingsForm">
-                                    <div class="mb-3">
-                                        <label for="authWebhookURL" class="form-label">Webhook URL:</label>
-                                        <input type="text" class="form-control" id="authWebhookURL"
-                                            placeholder="Enter Webhook URL" />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="authWebhookToken" class="form-label">Auth Token:</label>
-                                        <input type="text" class="form-control" id="authWebhookToken"
-                                            placeholder="Enter Auth Token" />
-                                    </div>
-                                    <button type="button" class="btn btn-primary" onclick="addAuthWebhook()">
-                                        Add Auth Webhook
-                                    </button>
-                                </form>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Debugging Options -->
-                    <div class="col-md-6 mb-4">
-                        <div class="card bg-dark text-white">
-                            <div class="card-header">Save Options</div>
-                            <div class="card-body">
-                                <form id="debugSettingsForm">
-                                    <button type="button" class="btn btn-success" onclick="saveConfig()">
-                                        Save Settings
-                                    </button>
-                                </form>
+                        <!-- Toggle Options -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card bg-dark text-white">
+                                <div class="card-header">Toggle Options</div>
+                                <div class="card-body">
+                                    <div id="toggleOptions"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main Logger Webhooks -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card bg-dark text-white">
+                                <div class="card-header">
+                                    Main Logger Webhooks
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>URL</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="mainloggerTableBody">
+                                                <!-- Mainlogger rows will be dynamically inserted here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <form id="mainloggerSettingsForm">
+                                        <div class="mb-3">
+                                            <label for="mainloggerURL" class="form-label">Webhook URL:</label>
+                                            <input type="text" class="form-control" id="mainloggerURL"
+                                                placeholder="Enter Webhook URL" />
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="addMainlogger()">
+                                            Add Main Logger Webhook
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Auth Webhooks -->
+                        <div class="col-md-12 mb-4">
+                            <div class="card bg-dark text-white">
+                                <div class="card-header">Auth Webhooks</div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>URL</th>
+                                                    <th>Token</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="authwebhookTableBody">
+                                                <!-- Auth webhook rows will be dynamically inserted here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <form id="authwebhookSettingsForm">
+                                        <div class="mb-3">
+                                            <label for="authWebhookURL" class="form-label">Webhook URL:</label>
+                                            <input type="text" class="form-control" id="authWebhookURL"
+                                                placeholder="Enter Webhook URL" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="authWebhookToken" class="form-label">Auth Token:</label>
+                                            <input type="text" class="form-control" id="authWebhookToken"
+                                                placeholder="Enter Auth Token" />
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="addAuthWebhook()">
+                                            Add Auth Webhook
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User ID Settings -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card bg-dark text-white">
+                                <div class="card-header">User ID Settings</div>
+                                <div class="card-body">
+                                    <form id="userIDSettingsForm">
+                                        <div class="mb-3">
+                                            <label for="discordUserID" class="form-label">Discord id:</label>
+                                            <input type="text" class="form-control" id="discordid"
+                                                placeholder="Enter discord id" />
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="saveUserConfig()">
+                                            Save User ID
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Debugging Options -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card bg-dark text-white">
+                                    <div class="card-header">Save Options</div>
+                                    <div class="card-body">
+                                        <form id="debugSettingsForm">
+                                            <button type="button" class="btn btn-success" onclick="saveConfig()">
+                                                Save Settings
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <footer class="text-center mt-5">
-        <h2>Copyright © 2025 World Balancer</h2>
-    </footer>
+            <footer class="text-center mt-5">
+                <h2>Copyright © 2025 World Balancer</h2>
+            </footer>
 
-    <!-- Scripts -->
-    <!-- Load JS dependencies -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
-        integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
-        crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
-        integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
-        crossorigin="anonymous"></script>
+            <!-- Scripts -->
+            <!-- Load JS dependencies -->
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+                integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
+                crossorigin="anonymous"></script>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
+                integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
+                crossorigin="anonymous"></script>
 
-    <script>
-        function clearLogs(id) {
-            const div = document.getElementById(id);
-            if (div) div.innerHTML = "";
-        }
-
-        // Save active tab to localStorage
-        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-            tab.addEventListener('shown.bs.tab', (e) => {
-                localStorage.setItem('activeTab', e.target.id);
-            });
-        });
-
-        // Restore active tab on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            const activeTabId = localStorage.getItem('activeTab');
-            if (activeTabId) {
-                const triggerEl = document.getElementById(activeTabId);
-                if (triggerEl) {
-                    new bootstrap.Tab(triggerEl).show();
+            <script>
+                function clearLogs(id) {
+                    const div = document.getElementById(id);
+                    if (div) div.innerHTML = "";
                 }
-            }
-        });
-    </script>
-    <script>
-        // Predefined log container elements
-        const logsDivMain = document.getElementById("mainLogContent");
-        const logsDivJoinLeave = document.getElementById(
-            "joiningLeavingContent"
-        );
-        const logsDivModLogs = document.getElementById(
-            "moderationLogsContent"
-        );
-        const logsDivplayercountersLogs = document.getElementById(
-            "playercountersContent"
-        );
-        const logsDivrchatswitchaviLogs = document.getElementById(
-            "vrchatswitchaviContent"
-        );
-        const logsDivstaffrosterLogs =
-            document.getElementById("staffrosterContent");
 
-        window.addEventListener("message", (event) => {
-            console.log("Received message:", event.data); // Add this line
-            let logElement;
-            switch (event.data.type) {
-                case "mainlog":
-                    logElement = document.createElement("p");
-                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
-                    logsDivMain.appendChild(logElement);
-                    logsDivMain.scrollTop = logsDivMain.scrollHeight;
-                    break;
-                case "joinleavelog":
-                    logElement = document.createElement("p");
-                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
-                    logsDivJoinLeave.appendChild(logElement);
-                    logsDivJoinLeave.scrollTop =
-                        logsDivJoinLeave.scrollHeight;
-                    break;
-                case "modlog":
-                    logElement = document.createElement("p");
-                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
-                    logsDivModLogs.appendChild(logElement);
-                    logsDivModLogs.scrollTop = logsDivModLogs.scrollHeight;
-                    break;
-                case "playercounterslog":
-                    logElement = document.createElement("p");
-                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
-                    logsDivplayercountersLogs.appendChild(logElement);
-                    logsDivplayercountersLogs.scrollTop =
-                        logsDivplayercountersLogs.scrollHeight;
-                    break;
-                case "vrchatswitchavilog":
-                    logElement = document.createElement("p");
-                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
-                    logsDivrchatswitchaviLogs.appendChild(logElement);
-                    logsDivrchatswitchaviLogs.scrollTop =
-                        logsDivrchatswitchaviLogs.scrollHeight;
-                    break;
-                case "srlog":
-                    logElement = document.createElement("p");
-                    logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
-                    logsDivstaffrosterLogs.appendChild(logElement);
-                    logsDivstaffrosterLogs.scrollTop =
-                        logsDivstaffrosterLogs.scrollHeight;
-                    break;
-                default:
-                    console.warn("Unknown log type:", event.data.type);
-                    break;
-            }
-        });
-    </script>
+                // Save active tab to localStorage
+                document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+                    tab.addEventListener('shown.bs.tab', (e) => {
+                        localStorage.setItem('activeTab', e.target.id);
+                    });
+                });
 
-    <script>
-        const directoriesOptions = {};
-        const staffrosterOptions = {};
-        const toggleOptions = {};
-        const mainloggerWebhooks = [];
-        const authwebhooks = [];
-
-        // Show warning modal with a custom message
-        function showWarningModal(message) {
-            document.getElementById("warningModalBody").textContent =
-                message;
-            const warningModal = new bootstrap.Modal(
-                document.getElementById("warningModal")
-            );
-
-            warningModal.show(); /* Show the modal */
-        }
-
-        // Load configuration from main process
-        async function loadConfig() {
-            try {
-                const savedConfig = await window.api.loadConfig();
-                console.log(savedConfig);
-
-                // Ensure proper merging of configuration data
-                Object.assign(toggleOptions, savedConfig.Toggle || {});
-                Object.assign(
-                    staffrosterOptions,
-                    savedConfig.dirstaffroster || {}
+                // Restore active tab on page load
+                window.addEventListener('DOMContentLoaded', () => {
+                    const activeTabId = localStorage.getItem('activeTab');
+                    if (activeTabId) {
+                        const triggerEl = document.getElementById(activeTabId);
+                        if (triggerEl) {
+                            new bootstrap.Tab(triggerEl).show();
+                        }
+                    }
+                });
+            </script>
+            <script>
+                // Predefined log container elements
+                const logsDivMain = document.getElementById("mainLogContent");
+                const logsDivJoinLeave = document.getElementById(
+                    "joiningLeavingContent"
                 );
-                Object.assign(
-                    directoriesOptions,
-                    savedConfig.Directories || {}
+                const logsDivModLogs = document.getElementById(
+                    "moderationLogsContent"
                 );
-
-                mainloggerWebhooks.length = 0; // Clear existing items
-                mainloggerWebhooks.push(
-                    ...(savedConfig.Webhooks.Mainlogger || [])
+                const logsDivplayercountersLogs = document.getElementById(
+                    "playercountersContent"
                 );
-                authwebhooks.length = 0; // Clear existing items
-                authwebhooks.push(
-                    ...(savedConfig.Webhooks.Authwebhook || [])
+                const logsDivrchatswitchaviLogs = document.getElementById(
+                    "vrchatswitchaviContent"
                 );
+                const logsDivstaffrosterLogs =
+                    document.getElementById("staffrosterContent");
 
-                renderToggleOptions();
-                renderMainloggerTable();
-                renderAuthWebhookTable();
-            } catch (error) {
-                console.error("Failed to load config:", error);
-            }
-        }
+                window.addEventListener("message", (event) => {
+                    console.log("Received message:", event.data); // Add this line
+                    let logElement;
+                    switch (event.data.type) {
+                        case "mainlog":
+                            logElement = document.createElement("p");
+                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logsDivMain.appendChild(logElement);
+                            logsDivMain.scrollTop = logsDivMain.scrollHeight;
+                            break;
+                        case "joinleavelog":
+                            logElement = document.createElement("p");
+                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logsDivJoinLeave.appendChild(logElement);
+                            logsDivJoinLeave.scrollTop =
+                                logsDivJoinLeave.scrollHeight;
+                            break;
+                        case "modlog":
+                            logElement = document.createElement("p");
+                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logsDivModLogs.appendChild(logElement);
+                            logsDivModLogs.scrollTop = logsDivModLogs.scrollHeight;
+                            break;
+                        case "playercounterslog":
+                            logElement = document.createElement("p");
+                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logsDivplayercountersLogs.appendChild(logElement);
+                            logsDivplayercountersLogs.scrollTop =
+                                logsDivplayercountersLogs.scrollHeight;
+                            break;
+                        case "vrchatswitchavilog":
+                            logElement = document.createElement("p");
+                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logsDivrchatswitchaviLogs.appendChild(logElement);
+                            logsDivrchatswitchaviLogs.scrollTop =
+                                logsDivrchatswitchaviLogs.scrollHeight;
+                            break;
+                        case "srlog":
+                            logElement = document.createElement("p");
+                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logsDivstaffrosterLogs.appendChild(logElement);
+                            logsDivstaffrosterLogs.scrollTop =
+                                logsDivstaffrosterLogs.scrollHeight;
+                            break;
+                        default:
+                            console.warn("Unknown log type:", event.data.type);
+                            break;
+                    }
+                });
+            </script>
 
-        // Save configuration to main process
-        async function saveConfig() {
-            const config = {
-                Directories: directoriesOptions,
-                dirstaffroster: staffrosterOptions,
-                Webhooks: {
-                    Mainlogger: mainloggerWebhooks,
-                    Authwebhook: authwebhooks,
-                },
-                Toggle: toggleOptions,
-            };
+            <script>
+                const directoriesOptions = {};
+                const staffrosterOptions = {};
+                const toggleOptions = {};
+                const mainloggerWebhooks = [];
+                const authwebhooks = [];
+                const useridOptions = {};
 
-            try {
-                await window.api.saveConfig(config);
-                console.log("Configuration saved:", config);
-            } catch (error) {
-                console.error("Failed to save config:", error);
-            }
-        }
+                // Show warning modal with a custom message
+                function showWarningModal(message) {
+                    document.getElementById("warningModalBody").textContent =
+                        message;
+                    const warningModal = new bootstrap.Modal(
+                        document.getElementById("warningModal")
+                    );
 
-        // Initial rendering
-        function init() {
-            loadConfig();
-        }
+                    warningModal.show(); /* Show the modal */
+                }
 
-        // Toggle options rendering
-        function renderToggleOptions() {
-            const toggleOptionsDiv =
-                document.getElementById("toggleOptions");
-            toggleOptionsDiv.innerHTML = ""; // Clear existing content
-            Object.keys(toggleOptions).forEach((key) => {
-                const isChecked = toggleOptions[key];
-                toggleOptionsDiv.innerHTML += `
+                // Load configuration from main process
+                async function loadConfig() {
+                    try {
+                        const savedConfig = await window.api.loadConfig();
+                        console.log(savedConfig);
+
+                        // Ensure proper merging of configuration data
+                        Object.assign(toggleOptions, savedConfig.Toggle || {});
+                        Object.assign(useridOptions, savedConfig.Userid || {});
+                        Object.assign(
+                            staffrosterOptions,
+                            savedConfig.dirstaffroster || {}
+                        );
+                        Object.assign(
+                            directoriesOptions,
+                            savedConfig.Directories || {}
+                        );
+
+                        mainloggerWebhooks.length = 0; // Clear existing items
+                        mainloggerWebhooks.push(
+                            ...(savedConfig.Webhooks.Mainlogger || [])
+                        );
+                        authwebhooks.length = 0; // Clear existing items
+                        authwebhooks.push(
+                            ...(savedConfig.Webhooks.Authwebhook || [])
+                        );
+
+                        renderToggleOptions();
+                        renderMainloggerTable();
+                        renderAuthWebhookTable();
+                    } catch (error) {
+                        console.error("Failed to load config:", error);
+                    }
+                }
+
+                // Save configuration to main process
+                async function saveConfig() {
+                    const config = {
+                        Directories: directoriesOptions,
+                        dirstaffroster: staffrosterOptions,
+                        Webhooks: {
+                            Mainlogger: mainloggerWebhooks,
+                            Authwebhook: authwebhooks,
+                        },
+                        Toggle: toggleOptions,
+                        Userid: useridOptions,
+                    };
+
+                    if (toggleOptions.avilogger) {
+                        const discordId = useridOptions.discordid || document.getElementById("discordid").value.trim();
+
+                        if (!discordId || /^(ENTER|YOUR)/i.test(discordId)) {
+                            showWarningModal(
+                                "A valid Discord ID is required when avilogger is enabled.\n" +
+                                "Please set your Discord ID in the User ID Settings section."
+                            );
+                            return false; // Prevent saving
+                        }
+                    }
+                    try {
+                        await window.api.saveConfig(config);
+                        console.log("Configuration saved:", config);
+                    } catch (error) {
+                        console.error("Failed to save config:", error);
+                    }
+                }
+
+                // Initial rendering
+                function init() {
+                    loadConfig();
+                    loadUserConfig();
+                }
+
+                function updateUI() {
+                    const discordInput = document.getElementById("discordid");
+                    if (toggleOptions.avilogger) {
+                        discordInput.classList.add("required-field");
+                        discordInput.placeholder = "REQUIRED - Your Discord ID";
+                    } else {
+                        discordInput.classList.remove("required-field");
+                        discordInput.placeholder = "Your Discord ID";
+                    }
+                }
+                async function loadUserConfig() {
+                    try {
+                        const savedConfig = await window.api.loadConfig();
+
+                        // Handle both legacy (string) and new (object) formats
+                        if (typeof savedConfig.Userid === 'string') {
+                            document.getElementById("discordid").value = savedConfig.Userid;
+                            useridOptions.discordid = savedConfig.Userid; // Migrate to new format
+                        } else if (savedConfig.Userid && savedConfig.Userid.discordid) {
+                            document.getElementById("discordid").value = savedConfig.Userid.discordid;
+                        } else {
+                            document.getElementById("discordid").value = "";
+                        }
+                    } catch (error) {
+                        console.error("Failed to load User config:", error);
+                    }
+                }
+
+                async function saveUserConfig() {
+                    const discordId = document.getElementById("discordid").value.trim();
+
+                    if (!discordId || discordId === "ENTERYOURDISCORDID") {
+                        showWarningModal("Please enter a valid Discord ID");
+                        return;
+                    }
+
+                    // Ensure proper structure
+                    useridOptions.discordid = discordId;
+                    await saveConfig();
+                }
+
+                // Toggle options rendering
+                function renderToggleOptions() {
+                    const toggleOptionsDiv =
+                        document.getElementById("toggleOptions");
+                    toggleOptionsDiv.innerHTML = ""; // Clear existing content
+                    Object.keys(toggleOptions).forEach((key) => {
+                        const isChecked = toggleOptions[key];
+                        toggleOptionsDiv.innerHTML += `
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="${key}" ${isChecked ? "checked" : ""
-                    } onchange="updateToggleOptions('${key}')">
+                            } onchange="updateToggleOptions('${key}')">
                 <label class="form-check-label" for="${key}">${key}</label>
             </div>
         `;
-            });
-        }
+                    });
+                }
 
-        // Update toggle options
-        function updateToggleOptions(key) {
-            toggleOptions[key] = document.getElementById(key).checked;
-            saveConfig();
-        }
+                // Update toggle options
+                function updateToggleOptions(key) {
+                    toggleOptions[key] = document.getElementById(key).checked;
+                    if (key === 'avilogger') {
+                        updateUI();
+                    }
+                    saveConfig();
+                }
 
-        // Main Logger Table rendering
-        function renderMainloggerTable() {
-            const tableBody = document.getElementById(
-                "mainloggerTableBody"
-            );
-            tableBody.innerHTML = ""; // Clear existing rows
-            mainloggerWebhooks.forEach((webhook, index) => {
-                tableBody.innerHTML += `
+                // Main Logger Table rendering
+                function renderMainloggerTable() {
+                    const tableBody = document.getElementById(
+                        "mainloggerTableBody"
+                    );
+                    tableBody.innerHTML = ""; // Clear existing rows
+                    mainloggerWebhooks.forEach((webhook, index) => {
+                        tableBody.innerHTML += `
                 <tr>
                     <td>${webhook}</td>
                     <td>
@@ -657,17 +739,17 @@ SOFTWARE.
                     </td>
                 </tr>
             `;
-            });
-        }
+                    });
+                }
 
-        // Auth Webhook Table rendering
-        function renderAuthWebhookTable() {
-            const tableBody = document.getElementById(
-                "authwebhookTableBody"
-            );
-            tableBody.innerHTML = ""; // Clear existing rows
-            authwebhooks.forEach((webhook, index) => {
-                tableBody.innerHTML += `
+                // Auth Webhook Table rendering
+                function renderAuthWebhookTable() {
+                    const tableBody = document.getElementById(
+                        "authwebhookTableBody"
+                    );
+                    tableBody.innerHTML = ""; // Clear existing rows
+                    authwebhooks.forEach((webhook, index) => {
+                        tableBody.innerHTML += `
                 <tr>
                     <td>${webhook.url}</td>
                     <td>${webhook.token}</td>
@@ -676,53 +758,53 @@ SOFTWARE.
                     </td>
                 </tr>
             `;
-            });
-        }
+                    });
+                }
 
-        // Add Main Logger Webhook
-        function addMainlogger() {
-            const url = document.getElementById("mainloggerURL").value;
-            if (url) {
-                mainloggerWebhooks.push(url);
-                renderMainloggerTable();
-                document.getElementById("mainloggerSettingsForm").reset();
-                saveConfig(); // Save configuration after adding
-            } else {
-                alert("Please enter a URL.");
-            }
-        }
+                // Add Main Logger Webhook
+                function addMainlogger() {
+                    const url = document.getElementById("mainloggerURL").value;
+                    if (url) {
+                        mainloggerWebhooks.push(url);
+                        renderMainloggerTable();
+                        document.getElementById("mainloggerSettingsForm").reset();
+                        saveConfig(); // Save configuration after adding
+                    } else {
+                        alert("Please enter a URL.");
+                    }
+                }
 
-        // Remove Main Logger Webhook
-        function removeMainlogger(index) {
-            mainloggerWebhooks.splice(index, 1);
-            renderMainloggerTable();
-            saveConfig(); // Save configuration after removing
-        }
+                // Remove Main Logger Webhook
+                function removeMainlogger(index) {
+                    mainloggerWebhooks.splice(index, 1);
+                    renderMainloggerTable();
+                    saveConfig(); // Save configuration after removing
+                }
 
-        // Add Auth Webhook
-        function addAuthWebhook() {
-            const url = document.getElementById("authWebhookURL").value;
-            const token = document.getElementById("authWebhookToken").value;
-            if (url && token) {
-                authwebhooks.push({ url, token });
-                renderAuthWebhookTable();
-                document.getElementById("authwebhookSettingsForm").reset();
-                saveConfig(); // Save configuration after adding
-            } else {
-                alert("Please enter both URL and Auth Token.");
-            }
-        }
+                // Add Auth Webhook
+                function addAuthWebhook() {
+                    const url = document.getElementById("authWebhookURL").value;
+                    const token = document.getElementById("authWebhookToken").value;
+                    if (url && token) {
+                        authwebhooks.push({ url, token });
+                        renderAuthWebhookTable();
+                        document.getElementById("authwebhookSettingsForm").reset();
+                        saveConfig(); // Save configuration after adding
+                    } else {
+                        alert("Please enter both URL and Auth Token.");
+                    }
+                }
 
-        // Remove Auth Webhook
-        function removeAuthWebhook(index) {
-            authwebhooks.splice(index, 1);
-            renderAuthWebhookTable();
-            saveConfig(); // Save configuration after removing
-        }
+                // Remove Auth Webhook
+                function removeAuthWebhook(index) {
+                    authwebhooks.splice(index, 1);
+                    renderAuthWebhookTable();
+                    saveConfig(); // Save configuration after removing
+                }
 
-        // Initialize the page
-        init();
-    </script>
+                // Initialize the page
+                init();
+            </script>
 </body>
 
 </html>
