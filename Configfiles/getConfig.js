@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 const Config = require('./Config.js');
-const { LOGSCLASS } = require('../functions/logsclass.js'); // Optional: For logging errors
+const { LOGSCLASS } = require('../functions/logsclass.js');
 
 /**
  *
