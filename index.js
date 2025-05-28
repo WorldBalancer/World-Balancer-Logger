@@ -23,46 +23,10 @@ SOFTWARE.
 */
 const fs = require("fs");
 const path = require("path");
-const os = require("os");
 const main = require("./main");
-const pkgjn = require("./package.json");
 const { loadConfig } = require("./Configfiles/configManager.js");
-const getConfig = require("./Configfiles/getConfig");
-
-// Get the path where the app is installed
-const appInstallPath = path.join(
-    os.homedir(),
-    "AppData",
-    "Roaming",
-    pkgjn.name
-);
-
-const logpath = path.join(appInstallPath, "log");
-const configDir = path.join(appInstallPath, "config");
 
 let errsleepy = "";
-
-/**
- *
- *
- * @return {*} 
- */
-async function initializeConfig() {
-    const Config = {
-        Directories: {
-            LogDirectory: await getConfig("Directories.LogDirectory"),
-        },
-    };
-    return Config;
-}
-
-if (!fs.existsSync(logpath)) {
-    fs.mkdirSync(logpath, { recursive: true });
-}
-
-if (!fs.existsSync(configDir)) {
-    fs.mkdirSync(configDir, { recursive: true });
-}
 
 // self server worldid, instanceid, instanceInfo
 const {
@@ -106,7 +70,7 @@ let lastReadPosition = 0;
  * @return {*} 
  */
 async function checkForNewFiles() {
-    const Config = await initializeConfig(); // Fetch config settings from the database
+    const Config = await loadConfig(); // Fetch config settings from the database
     const logDirectory = Config.Directories?.LogDirectory;
 
     if (!logDirectory) {
