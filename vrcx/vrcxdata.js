@@ -25,22 +25,7 @@ SOFTWARE.
 const fetch = require("node-fetch");
 const { LOGSCLASS } = require("../functions/logsclass.js");
 const main = require("../main.js");
-const getConfig = require("../Configfiles/getConfig.js");
-
-/**
- *
- *
- * @return {*} 
- */
-async function initializeConfig() {
-    const Config = {
-        vrcx: await getConfig("vrcx"),
-        Toggle: {
-            vrcxdata: await getConfig("Toggle.vrcxdata"),
-        },
-    };
-    return Config;
-}
+const { initializeConfig, loadConfig } = require("../Configfiles/configManager.js");
 
 /**
  *
@@ -48,9 +33,11 @@ async function initializeConfig() {
  * @return {*} 
  */
 async function vrcxdata() {
-    const Config = await initializeConfig(); // Fetch config settings from the database
+    
 
-    if (!Config.vrcx || !Config.Toggle.vrcxdata) {
+const config = await loadConfig(); // Load the config // Fetch config settings from the database
+
+    if (!config.vrcx || !config.Toggle.vrcxdata) {
         return; // No need to fetch data from vrcx if it's not enabled in the configuration
     }
 

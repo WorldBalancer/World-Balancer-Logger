@@ -24,26 +24,7 @@ SOFTWARE.
 
 const { LOGSCLASS } = require("../functions/logsclass.js");
 const axios = require("axios");
-const getConfig = require("../Configfiles/getConfig.js");
-
-/**
- *
- *
- * @return {*} 
- */
-async function initializeConfig() {
-    return {
-        Toggle: {
-            Mainwebhook: await getConfig("Toggle.Mainwebhook"),
-            Authwebhook: await getConfig("Toggle.Authwebhook"),
-            isEmbed: await getConfig("Toggle.isEmbed"),
-        },
-        Webhooks: {
-            Mainlogger: await getConfig("Webhooks.Mainlogger"),
-            Authwebhook: await getConfig("Webhooks.Authwebhook"),
-        },
-    };
-}
+const { initializeConfig, loadConfig } = require("../Configfiles/configManager.js");
 
 /**
  *
@@ -110,7 +91,9 @@ async function postToWebhook(url, data, headers) {
  * @param {*} logEntry
  */
 async function sendToWebhook(logEntry) {
-    const config = await initializeConfig();
+
+
+    const config = await loadConfig(); // Load the config
     const isEmbed = config.Toggle.isEmbed;
     const payload = createPayload(logEntry, isEmbed);
 

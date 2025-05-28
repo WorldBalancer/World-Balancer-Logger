@@ -25,21 +25,7 @@ SOFTWARE.
 const main = require("../main.js");
 const { sendToWebhook } = require("../webhook/index.js");
 const { LOGSCLASS } = require("../functions/logsclass.js");
-const getConfig = require("../Configfiles/getConfig.js");
-
-/**
- *
- *
- * @return {*} 
- */
-async function initializeConfig() {
-    const Config = {
-        Toggle: {
-            Webhook: await getConfig("Toggle.Webhook")
-        },
-    };
-    return Config;
-}
+const { loadConfig } = require("../Configfiles/configManager.js");
 
 // Initialize counters
 const counters = {
@@ -192,14 +178,15 @@ const setLimit = (type, newLimit) => {
  * @param {*} status
  */
 const logCounter = async (type, status) => {
-    const Config = await initializeConfig(); // Fetch config settings from the database
+
+    const config = await loadConfig(); // Load the config // Fetch config settings from the database
     const counterData = counters[type];
     const message = `${capitalize(type)} Counters: ${status} ${JSON.stringify(
         counterData
     )}`;
 
     main.log(message, "info", "playercounterslog");
-    if (Config.Toggle.Webhook === true) {
+    if (config.Toggle.Webhook === true) {
         sendToWebhook(message);
     }
 };

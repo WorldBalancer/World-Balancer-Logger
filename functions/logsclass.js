@@ -23,7 +23,12 @@ SOFTWARE.
 */
 
 const fs = require("fs");
+const pkgjn = require("../package.json");
+const os = require("os");
 const path = require("path");
+
+const appInstallPath = path.join(os.homedir(), "AppData", "Roaming", pkgjn.name);
+const logDir = path.join(appInstallPath, "log");
 
 /**
  *
@@ -39,7 +44,7 @@ class LOGSCLASS {
      * @memberof LOGSCLASS
      */
     static async writeErrorToFile(error) {
-        const { logpath } = require("../Configfiles/Config.js");
+        const { logpath } = require(logDir);
         const errorlog = path.join(logpath, "error.log");
         const timestamp = new Date().toISOString();
         fs.appendFileSync(errorlog, `${timestamp} - ${error}\n`);
@@ -60,7 +65,7 @@ class ModClass {
      * @memberof ModClass
      */
     static async writeModerationToFile(formattedLogMessage) {
-        const { logpath } = require("../Configfiles/Config.js");
+        const { logpath } = require(logDir);
         const Moderationlog = path.join(logpath, "Moderation_new.log");
         const timestamp = new Date().toISOString();
         fs.appendFileSync(
@@ -84,7 +89,7 @@ class ModResetShowUserAvatarClass {
      * @memberof ModResetShowUserAvatarClass
      */
     static async writeModerationResetShowUserAvatarToFile(formattedLogMessage) {
-        const { logpath } = require("../Configfiles/Config.js");
+        const { logpath } = require(logDir);
         const Moderationlog = path.join(
             logpath,
             "Moderation_ResetShowUserAvatar.log"
@@ -111,7 +116,7 @@ class AVISwitchingClass {
      * @memberof AVISwitchingClass
      */
     static async writeModerationToFile(formattedLogMessage) {
-        const { logpath } = require("../Configfiles/Config.js");
+        const { logpath } = require(logDir);
         const AviSwitchinglog = path.join(logpath, "AviSwitching.log");
         const timestamp = new Date().toISOString();
         fs.appendFileSync(
@@ -135,7 +140,7 @@ class AVISwitchinglogsClass {
      * @memberof AVISwitchinglogsClass
      */
     static async writeModerationToFile(formattedLogMessage) {
-        const { logpath } = require("../Configfiles/Config.js");
+        const { logpath } = require(logDir);
         const AviSwitchingdatalog = path.join(
             logpath,
             "AviSwitchingdatalogs.log"
@@ -162,7 +167,7 @@ class PlayerClass {
      * @memberof PlayerClass
      */
     static async writeplayerToFile(formattedLogMessage) {
-        const { logpath } = require("../Configfiles/Config.js");
+        const { logpath } = require(logDir);
         const playerlog = path.join(logpath, "player.log");
         const timestamp = new Date().toISOString();
         fs.appendFileSync(playerlog, `${timestamp} - ${formattedLogMessage}\n`);
@@ -183,7 +188,7 @@ class MODLOGCLASS {
      * @memberof MODLOGCLASS
      */
     static async writeModerationlogToFile(formattedLogMessage) {
-        const { logpath } = require("../Configfiles/Config.js");
+        const { logpath } = require(logDir);
         const modlogdata = path.join(logpath, "modata.log");
         const timestamp = new Date().toISOString();
         fs.appendFileSync(
@@ -207,7 +212,7 @@ class StaffROSter {
      * @memberof StaffROSter
      */
     static async writedataToFile(dataToWrite) {
-        const { logpath } = require("../Configfiles/Config.js");
+        const { logpath } = require(logDir);
         const staffrosterlog = path.join(logpath, "staffroster.log");
         const timestamp = new Date().toISOString();
         fs.appendFileSync(staffrosterlog, `${timestamp} - ${dataToWrite}\n`);

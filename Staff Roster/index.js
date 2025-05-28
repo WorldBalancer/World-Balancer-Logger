@@ -24,30 +24,10 @@ SOFTWARE.
 
 const fs = require("fs");
 const FuzzySet = require("fuzzyset");
-const getConfig = require("../Configfiles/getConfig.js");
+const { initializeConfig, loadConfig } = require("../Configfiles/configManager.js");
 const { LOGSCLASS, StaffROSter } = require("../functions/logsclass.js");
 const main = require("../main.js");
 const { sendToWebhook } = require("../webhook/index.js");
-
-// Initialize Configuration
-/**
- *
- *
- * @return {*} 
- */
-async function initializeConfig() {
-    const Config = {
-        dirstaffroster: {
-            staffgetDirectory: await getConfig("dirstaffroster.staffgetDirectory"),
-            staffpostDirectory: await getConfig("dirstaffroster.staffpostDirectory"),
-        },
-        Toggle: {
-            staffrostertoggle: await getConfig("Toggle.staffrostertoggle"),
-            Webhook: await getConfig("Toggle.Webhook")
-        },
-    };
-    return Config;
-}
 
 // Read CSV File
 /**
@@ -119,8 +99,10 @@ async function getFuzzySet(filePath) {
  * @param {*} eventType
  */
 async function logStaffEvent(displayName, userId, eventType) {
-    const Config = await initializeConfig();
-    const customFilePath = Config.dirstaffroster.staffgetDirectory;
+    
+
+const config = await loadConfig(); // Load the config
+    const customFilePath = config.dirstaffroster.staffgetDirectory;
     const useridFuzzySet = await getFuzzySet(customFilePath);
     const result = useridFuzzySet.get(String(userId), null, 0.8); // Lowered threshold
 
@@ -146,11 +128,11 @@ async function logStaffEvent(displayName, userId, eventType) {
         );
 
         const message = `${formattedLogMessage} staff roster - ${displayName} (${userId}) eventType: ${eventType}`;
-        if (Config.Toggle.Webhook === true) {
+        if (config.Toggle.Webhook === true) {
             sendToWebhook(message);
         }
 
-        await writeDataToCsv(dataToWrite, Config.dirstaffroster.staffpostDirectory);
+        await writeDataToCsv(dataToWrite, config.dirstaffroster.staffpostDirectory);
     } else {
         main.log("No user found in StaffRoster", "info", "srlog");
     }
@@ -164,12 +146,14 @@ async function logStaffEvent(displayName, userId, eventType) {
  * @param {*} cleanUser
  */
 async function StaffRosterjoin(cleanedString, cleanUser) {
-    const Config = await initializeConfig();
+    
+
+const config = await loadConfig(); // Load the config
 
     const displayName = cleanedString;
     const userId = cleanUser;
 
-    if (Config.Toggle.staffrostertoggle === true) {
+    if (config.Toggle.staffrostertoggle === true) {
         await logStaffEvent(displayName, userId, "OnPlayerJoined");
     }
 }
@@ -181,12 +165,14 @@ async function StaffRosterjoin(cleanedString, cleanUser) {
  * @param {*} cleanUser
  */
 async function StaffRosterleft(cleanedString, cleanUser) {
-    const Config = await initializeConfig();
+    
+
+const config = await loadConfig(); // Load the config
 
     const displayName = cleanedString;
     const userId = cleanUser;
 
-    if (Config.Toggle.staffrostertoggle === true) {
+    if (config.Toggle.staffrostertoggle === true) {
         await logStaffEvent(displayName, userId, "OnPlayerLeft");
     }
 }

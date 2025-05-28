@@ -21,6 +21,7 @@ const sequelize = new Sequelize({
 (async () => {
     try {
         sequelize.authenticate();
+        sequelize.sync();
     } catch (e) {
         console.error("Unable to connect:", e);
     }

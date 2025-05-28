@@ -28,6 +28,7 @@ const fs = require("fs").promises;
 const os = require("os");
 const sequelize = require("./Configfiles/configsqlite");
 const Config = require("./Configfiles/Config");
+const { twoloadConfig, saveConfig, initializeConfig } = require("./Configfiles/configManager.js");
 const { version, name: appName } = require("./package.json");
 
 const isWindows = process.platform === "win32";
@@ -37,8 +38,26 @@ let mainWindow;
 // ─────────────────────────────────────
 // IPC Handlers
 ipcMain.handle("get-user-data-path", () => app.getPath("userData"));
-ipcMain.handle("load-config", loadConfig);
-ipcMain.handle("save-config", async (_, config) => saveConfigRecursively(config));
+ipcMain.handle("load-config", async () => {
+    try {
+        const config = await twoloadConfig();
+        return config;
+    } catch (err) {
+        console.error("Failed to load config:", err);
+        return {};
+    }
+});
+
+ipcMain.handle("save-config", async (event, config) => {
+    try {
+        await saveConfig(config);
+        return { success: true };
+    } catch (err) {
+        console.error("Failed to save config:", err);
+        return { success: false, error: err.message };
+    }
+});
+
 ipcMain.handle("get-app-version", () => version);
 
 // ─────────────────────────────────────
@@ -66,203 +85,10 @@ function log(message, level = "info", type = "mainlog") {
 
 // ─────────────────────────────────────
 // Config DB path
-/**
- *
- *
- * @return {*} 
- */
-function getDatabasePath() {
-    const baseDir = isWindows
-        ? path.join(process.env.APPDATA || "", appName, "config")
-        : path.join(os.homedir(), `.${appName}`, "config");
-    return path.join(baseDir, "config.sqlite");
-}
 
-/**
- *
- *
- * @return {*} 
- */
-async function doesDatabaseExist() {
-    const dbPath = getDatabasePath();
-    try {
-        await fs.access(dbPath, fs.constants.F_OK);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-// ─────────────────────────────────────
-// Config Loader/Saver
-/**
- *
- *
- * @param {*} obj
- * @param {string} [parentKey=""]
- * @param {*} [collected=[]]
- */
-async function saveConfigRecursively(obj, parentKey = "", collected = []) {
-    for (const [key, value] of Object.entries(obj)) {
-        const currentKey = parentKey ? `${parentKey}.${key}` : key;
-        if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-            await saveConfigRecursively(value, currentKey, collected);
-        } else {
-            collected.push({ keyid: currentKey, value: JSON.stringify(value) });
-        }
-    }
-    if (parentKey === "") await Promise.all(collected.map(e => Config.upsert(e)));
-}
-
-/**
- *
- *
- * @return {*} 
- */
-async function loadConfig() {
-    try {
-        const configEntries = await Config.findAll();
-        const configObject = {};
-        for (const { keyid, value } of configEntries) {
-            const keys = keyid.split(".");
-            let current = configObject;
-            keys.forEach((key, i) => {
-                if (i === keys.length - 1) {
-                    current[key] = JSON.parse(value);
-                } else {
-                    current[key] = current[key] || {};
-                    current = current[key];
-                }
-            });
-        }
-        return configObject;
-    } catch (error) {
-        console.error("loadConfig():", error);
-        return {};
-    }
-}
-
-/**
- *
- *
- * @param {*} obj
- * @param {string} [parentKey=""]
- * @return {*} 
- */
-function flattenKeys(obj, parentKey = "") {
-    let keys = [];
-    for (const [key, value] of Object.entries(obj)) {
-        const fullKey = parentKey ? `${parentKey}.${key}` : key;
-        if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-            keys = keys.concat(flattenKeys(value, fullKey));
-        } else {
-            keys.push(fullKey);
-        }
-    }
-    return keys;
-}
-
-// ─────────────────────────────────────
-// Default config and init
-/**
- *
- *
- * @return {*} 
- */
-async function getDefaultConfig() {
-    const baseDir = path.join(os.homedir(), "AppData", "LocalLow", "VRChat", "VRChat");
-    return {
-        Directories: { LogDirectory: baseDir },
-        dirstaffroster: {
-            staffgetDirectory: "ENTERYOURDIRECTORY",
-            staffpostDirectory: "ENTERYOURDIRECTORY",
-        },
-        Webhooks: { Mainlogger: [], Authwebhook: [] },
-        Toggle: {
-            Mainwebhook: false,
-            Authwebhook: false,
-            Webhook: false,
-            vrcxdata: false,
-            isEmbed: false,
-            AviStwitch: true,
-            TTS: false,
-            staffrostertoggle: false,
-            WBselfservertoggle: true,
-            avilogger: false,
-        },
-        Userid: {
-            discordid: "ENTERYOURDISCORDID"
-        }
-    };
-}
-
-/**
- *
- *
- */
-async function setupInitialConfig() {
-    const defaultConfig = await getDefaultConfig();
-    await saveConfigRecursively(defaultConfig);
-}
-
-/**
- *
- *
- * @param {*} defaultConfig
- * @param {*} currentConfig
- * @param {*} existingMap
- * @param {string} [parentKey=""]
- */
-async function updateMissingKeys(defaultConfig, currentConfig, existingMap, parentKey = "") {
-    for (const [key, defaultValue] of Object.entries(defaultConfig)) {
-        const currentKey = parentKey ? `${parentKey}.${key}` : key;
-        if (typeof defaultValue === "object" && defaultValue !== null && !Array.isArray(defaultValue)) {
-            await updateMissingKeys(defaultValue, currentConfig[key] || {}, existingMap, currentKey);
-        } else {
-            if (!existingMap.has(currentKey)) {
-                await Config.upsert({ keyid: currentKey, value: JSON.stringify(defaultValue) });
-            }
-        }
-    }
-}
-
-/**
- *
- *
- * @param {*} defaultConfig
- * @param {*} currentConfig
- */
-async function removeUnusedKeys(defaultConfig, currentConfig) {
-    const defaultKeys = new Set(flattenKeys(defaultConfig));
-    const currentKeys = flattenKeys(currentConfig);
-    const toDelete = currentKeys.filter(key => !defaultKeys.has(key));
-    await Promise.all(toDelete.map(key => Config.destroy({ where: { keyid: key } })));
-}
-
-/**
- *
- *
- * @return {*} 
- */
-async function initializeDatabase() {
-    const dbExists = await doesDatabaseExist();
-    if (!dbExists) {
-        await sequelize.sync();
-        await setupInitialConfig();
-        return true;
-    } else {
-        await sequelize.sync({ alter: true });
-        const [defaultConfig, currentConfig, configEntries] = await Promise.all([
-            getDefaultConfig(),
-            loadConfig(),
-            Config.findAll()
-        ]);
-        const configMap = new Set(configEntries.map(e => e.keyid));
-        await updateMissingKeys(defaultConfig, currentConfig, configMap);
-        await removeUnusedKeys(defaultConfig, currentConfig);
-        return false;
-    }
-}
+(async () => {
+    await initializeConfig(); // ensures config is up-to-date
+})();
 
 // ─────────────────────────────────────
 // Window setup
@@ -313,8 +139,7 @@ app.on("ready", () => {
     createLoadingWindow();
     mainWindow.webContents.once("did-finish-load", async () => {
         try {
-            const isFirstLaunch = await initializeDatabase();
-            loadMainWindow(isFirstLaunch);
+            loadMainWindow();
         } catch (err) {
             console.error("Database init failed:", err);
             log(`Database setup error: ${err.message}`, "error");
