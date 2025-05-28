@@ -23,7 +23,6 @@ SOFTWARE.
 */
 
 const fetch = require("node-fetch");
-const { LOGSCLASS } = require("../functions/logsclass.js");
 const main = require("../main.js");
 const { initializeConfig, loadConfig } = require("../Configfiles/configManager.js");
 
@@ -72,7 +71,6 @@ const config = await loadConfig(); // Load the config // Fetch config settings f
         }
     } catch (error) {
         console.error(error);
-        LOGSCLASS.writeErrorToFile(error);
         return;
     }
 }

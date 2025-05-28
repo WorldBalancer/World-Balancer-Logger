@@ -24,7 +24,6 @@ SOFTWARE.
 
 const main = require("../main.js");
 const { sendToWebhook } = require("../webhook/index.js");
-const { LOGSCLASS } = require("../functions/logsclass.js");
 const { loadConfig } = require("../Configfiles/configManager.js");
 
 // Initialize counters
@@ -202,7 +201,6 @@ const handleError = (errorMessage) => {
     const timestamp = new Date().toISOString();
     const fullMessage = `[${timestamp}] ${errorMessage}`;
     console.error(fullMessage);
-    LOGSCLASS.writeErrorToFile(fullMessage);
     return false;
 };
 

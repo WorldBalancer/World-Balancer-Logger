@@ -9,7 +9,6 @@ in the Software without restriction...
 */
 
 const say = require("say");
-const { LOGSCLASS } = require("./logsclass.js");
 
 const ttsQueue = [];
 let isProcessing = false;
@@ -22,7 +21,6 @@ async function getDeviceVoices() {
     return new Promise((resolve, reject) => {
         say.getInstalledVoices((err, voices) => {
             if (err) {
-                LOGSCLASS.writeErrorToFile(`Error retrieving voices: ${err.message}`);
                 return reject(err);
             }
             resolve(voices);
@@ -52,7 +50,6 @@ async function processQueue() {
     try {
         await speakText(text, model);
     } catch (err) {
-        LOGSCLASS.writeErrorToFile(`TTS processing error: ${err.message}`);
     } finally {
         isProcessing = false;
         if (ttsQueue.length > 0) {
@@ -71,7 +68,6 @@ function speakText(text, model) {
     return new Promise((resolve, reject) => {
         say.speak(text, model, 0.9, (err) => {
             if (err) {
-                LOGSCLASS.writeErrorToFile(`TTS speak error: ${err.message}`);
                 return reject(err);
             }
             resolve();

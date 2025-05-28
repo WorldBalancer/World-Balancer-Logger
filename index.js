@@ -1,3 +1,26 @@
+/*
+MIT License
+
+Copyright (c) 2025 World Balancer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
@@ -36,17 +59,6 @@ if (!fs.existsSync(configDir)) {
     fs.mkdirSync(configDir, { recursive: true });
 }
 
-// fuck the log files so many why
-const {
-    LOGSCLASS,
-    PlayerClass,
-    ModClass,
-    AVISwitchingClass,
-    ModResetShowUserAvatarClass,
-    AVISwitchinglogsClass,
-    MODLOGCLASS,
-} = require("./functions/logsclass.js");
-
 // self server worldid, instanceid, instanceInfo
 const {
     startServer,
@@ -66,11 +78,13 @@ const { vrcxdata } = require("./vrcx/vrcxdata.js");
 
 const { getDeviceVoices, SayDeviceVoices } = require("./functions/TTS.js");
 
+const processAvatarid = require("./avilogger/index.js");
+
 // Wrap in an IIFE (Immediately Invoked Function Expression) to use await at the top level
 (async () => {
     const Config = await loadConfig(); // Fetch config settings from the database
 
-    if (Config.Toggle.WBselfservertoggle == true) {
+    if (Config.Toggle.WBselfservertoggle === true) {
         startServer()
     }
 
@@ -87,7 +101,6 @@ async function checkForNewFiles() {
 
     if (!logDirectory) {
         errsleepy = `Log directory path is missing or null.`;
-        LOGSCLASS.writeErrorToFile(errsleepy);
         return;
     }
 
@@ -97,7 +110,6 @@ async function checkForNewFiles() {
     } catch (err) {
         console.error(`Failed to read directory: ${logDirectory}`, err);
         errsleepy = `Failed to read directory: ${logDirectory} ${err}`;
-        LOGSCLASS.writeErrorToFile(errsleepy);
         main.log(errsleepy, "info", "mainlog");
         return;
     }
@@ -140,7 +152,7 @@ async function readNewLogs(currentLogFile, lastReadPosition) {
         return [newLogs, newLastReadPosition]; // Return an array with newLogs and newLastReadPosition
     } catch (err) {
         errsleepy = `Error reading log file: ${err}`;
-        LOGSCLASS.writeErrorToFile(errsleepy);
+
         throw err; // Rethrow the error to propagate it up the call stack
     }
 }
@@ -165,7 +177,6 @@ async function monitorAndSend() {
                         if (log.length > 10000) { // Adjust the limit as necessary
                             main.log(`Log entry too long, skipping: ${log.length} only dev test`, "warn", "mainlog");
                             errsleepy = `Log entry too long, skipping: ${log.length} only dev test`;
-                            LOGSCLASS.writeErrorToFile(errsleepy);
                             return; // Skip processing this log entry
                         }
                         if (log.includes("Joining or Creating Room")) {
@@ -176,7 +187,7 @@ async function monitorAndSend() {
 
                             resetCounter("player");
 
-                            if (Config.Toggle.vrcxdata == true) {
+                            if (Config.Toggle.vrcxdata === true) {
                                 vrcxdata();
                             }
 
@@ -185,8 +196,8 @@ async function monitorAndSend() {
                                 "info",
                                 "joinleavelog"
                             );
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(logParts.join(" "));
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(logParts.join(" "));
                             }
                         } else if (log.includes("[Always] Instance closed:")) {
                             const logParts = log
@@ -199,17 +210,14 @@ async function monitorAndSend() {
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
 
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
-                            ModClass.writeModerationToFile(formattedLogMessage);
-
                             main.log(
                                 logParts.join(" "),
                                 "info",
                                 "joinleavelog"
                             );
 
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(formattedLogMessage);
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(formattedLogMessage);
                             }
                         } else if (log.includes("ModerationManager")) {
                             const logParts = log
@@ -222,8 +230,8 @@ async function monitorAndSend() {
 
                             ModClass.writeModerationToFile(formattedLogMessage);
 
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(logParts.join(" "));
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(logParts.join(" "));
                             }
 
                             main.log(logParts.join(" "), "info", "modlog");
@@ -234,7 +242,7 @@ async function monitorAndSend() {
                                     /A vote kick has been initiated against [^,]+/
                                 );
                             if (matchResult) {
-                                if (Config.Toggle.TTS == true) {
+                                if (Config.Toggle.TTS === true) {
                                     getDeviceVoices().then((list11) => {
                                         SayDeviceVoices(
                                             `${matchResult[0]}`,
@@ -320,8 +328,6 @@ async function monitorAndSend() {
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
 
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
-
                             const message = `<t:${Math.round(
                                 timestamp
                             )}:f> VRChat Log - OnPlayerJoined ${cleanedString} ${cleanUser} `;
@@ -333,8 +339,8 @@ async function monitorAndSend() {
                                 "info",
                                 "joinleavelog"
                             );
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(message);
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(message);
                             }
                         } else if (log.includes("[Behaviour] OnPlayerLeft")) {
                             const logParts = log
@@ -371,14 +377,13 @@ async function monitorAndSend() {
 
                             const timestamp = Date.now() / 1000;
                             const formattedLogMessage = `<t:${Math.round(timestamp)}:f> ${logParts.join(" ")}`;
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
 
                             const message = `<t:${Math.round(timestamp)}:f> VRChat Log - OnPlayerLeft ${cleanedString} ${cleanUser}`;
                             const notimestampmessage = `VRChat Log - OnPlayerLeft ${cleanedString} ${cleanUser}`;
 
                             main.log(notimestampmessage, "info", "joinleavelog");
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(message);
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(message);
                             }
                         } else if (log.includes("[Behaviour] Destroying")) {
                             const logParts = log
@@ -394,8 +399,6 @@ async function monitorAndSend() {
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
 
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
-
                         } else if (log.includes("[Behaviour] OnPlayerLeftRoom")) {
                             const logParts = log
                                 .split(" ")
@@ -403,8 +406,6 @@ async function monitorAndSend() {
                             logParts.splice(logParts.indexOf("[Behaviour]"), 1);
 
                             formattedLogMessage = `${logParts.join(" ")}`;
-
-                            PlayerClass.writeplayerToFile(formattedLogMessage)
 
                         } else if (log.includes("[Behaviour] Initialized player")) {
                             const logParts = log
@@ -419,8 +420,6 @@ async function monitorAndSend() {
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
 
-                            PlayerClass.writeplayerToFile(formattedLogMessage);
-
                         } else if (
                             log.includes("VRC.Udon.VM.UdonVMException")
                         ) {
@@ -431,8 +430,8 @@ async function monitorAndSend() {
                                 .filter((part) => part !== "");
                             logParts.splice(logParts.indexOf("[Behaviour]"), 1);
                             main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(logParts.join(" "));
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(logParts.join(" "));
                             }
                         } else if (
                             log.includes(
@@ -449,12 +448,9 @@ async function monitorAndSend() {
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
 
-                            ModResetShowUserAvatarClass.writeModerationResetShowUserAvatarToFile(
-                                formattedLogMessage
-                            );
                             main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(logParts.join(" "));
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(logParts.join(" "));
                             }
                         } else if (log.includes("USharpVideo")) {
                             // Clean out the long 'resolved to' URL if present
@@ -465,8 +461,8 @@ async function monitorAndSend() {
                                 .filter((part) => part !== "");
 
                             main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(logParts.join(" "));
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(logParts.join(" "));
                             }
                         } else if (log.includes("Video Playback")) {
                             // Clean out the long 'resolved to' URL if present
@@ -478,8 +474,8 @@ async function monitorAndSend() {
 
                             main.log(logParts.join(" "), "info", "modlog");
 
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(logParts.join(" "));
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(logParts.join(" "));
                             }
                         } else if (
                             log.includes(
@@ -494,8 +490,8 @@ async function monitorAndSend() {
                                 "info",
                                 "joinleavelog"
                             );
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(logParts.join(" "));
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(logParts.join(" "));
                             }
                         } else if (log.includes("Switching ")) {
                             const logParts = log
@@ -519,13 +515,10 @@ async function monitorAndSend() {
                                     timestamp
                                 )}:f> vrchat log - user ${username} switching to ${avatarneedName}`;
 
-                                if (Config.Toggle.Webhook == true) {
-                                sendToWebhook(formattedLogMessage);
+                                if (Config.Toggle.Webhook === true) {
+                                    sendToWebhook(formattedLogMessage);
                                 }
-                                AVISwitchingClass.writeModerationToFile(
-                                    formattedLogMessage
-                                );
-                                if (Config.Toggle.AviStwitch == true) {
+                                if (Config.Toggle.AviStwitch === true) {
                                     main.log(
                                         `vrchat log - user ${username} switching to ${avatarneedName}`,
                                         "info",
@@ -564,12 +557,14 @@ async function monitorAndSend() {
                                 " "
                             )}`;
 
-                            ModClass.writeModerationToFile(formattedLogMessage);
-
                             main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook == true) {
-                            sendToWebhook(formattedLogMessage);
+                            if (Config.Toggle.Webhook === true) {
+                                sendToWebhook(formattedLogMessage);
                             }
+                        } else if (
+                            log.includes("[API] Requesting Get avatars")
+                        ) {
+                            processAvatarid(log)
                         } else if (
                             log.includes("[Behaviour] Destination set: ")
                         ) {
@@ -615,8 +610,8 @@ async function monitorAndSend() {
                                             instanceId: instanceId
                                         };
 
-                                        if (Config.Toggle.WBselfservertoggle == true) {
-                                        updateInstanceInfo(newInfo);
+                                        if (Config.Toggle.WBselfservertoggle === true) {
+                                            updateInstanceInfo(newInfo);
                                         }
 
                                         main.log(
@@ -639,8 +634,8 @@ async function monitorAndSend() {
                                         formattedLogMessage = `<t:${Math.round(
                                             timestamp
                                         )}:f> You have joined [WORLD URL](https://vrchat.com/home/launch?worldId=${worldId}&instanceId=${instanceInfo})`;
-                                        if (Config.Toggle.Webhook == true) {
-                                        sendToWebhook(formattedLogMessage);
+                                        if (Config.Toggle.Webhook === true) {
+                                            sendToWebhook(formattedLogMessage);
                                         }
                                     } else {
                                         main.log(
@@ -652,7 +647,6 @@ async function monitorAndSend() {
                                 }
                             } catch (error) {
                                 errsleepy = `error stack: ${error}`;
-                                LOGSCLASS.writeErrorToFile(errsleepy);
                             }
                         }
                     });
@@ -669,7 +663,6 @@ async function monitorAndSend() {
         }
     } catch (error) {
         errsleepy = `error stack of monitor of vrchat: ${error.message}`;
-        LOGSCLASS.writeErrorToFile(errsleepy);
         main.log(errsleepy, "info", "mainlog");
     }
 }
@@ -678,19 +671,8 @@ monitorAndSend();
 
 // ———————————————[Error Handling]———————————————
 process.on("uncaughtException", (err, origin) => {
-    LOGSCLASS.writeErrorToFile(
-        `Uncaught Exception at: ${new Date().toISOString()}
-        Error: ${err.message}
-        Stack: ${err.stack}
-        Origin: ${origin}`
-    );
     setTimeout(() => process.exit(1), 100);
 });
 
 process.on("unhandledRejection", (reason, promise) => {
-    LOGSCLASS.writeErrorToFile(
-        `Unhandled Rejection at: ${new Date().toISOString()}
-        Reason: ${reason}
-        Promise: ${promise}`
-    );
 });

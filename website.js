@@ -26,7 +26,6 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
-const { LOGSCLASS } = require("./functions/logsclass.js")
 
 let io; // Declare io globally
 
@@ -46,7 +45,6 @@ function pushWebsite() {
     try {
         if (!io) {
             errsleepy = "ERROR: Socket.io is not initialized!";
-            LOGSCLASS.writeErrorToFile(errsleepy);
             return;
         }
 
@@ -72,7 +70,6 @@ function pushWebsite() {
 
     } catch (error) {
         errsleepy = `ERROR in pushWebsite(): ${error}`;
-        LOGSCLASS.writeErrorToFile(errsleepy);
     }
 }
 
@@ -100,7 +97,6 @@ function startServer() {
             pushWebsite(); // Send initial data when a user connects
         } catch (error) {
             errsleepy = `ERROR when sending initial data: ${error}`;
-            LOGSCLASS.writeErrorToFile(errsleepy);
         }
 
 socket.on('disconnect', () => {
@@ -115,21 +111,10 @@ server.listen(PORT, () => {
 
     // ———————————————[Error Handling]———————————————
     process.on("uncaughtException", (err, origin) => {
-        LOGSCLASS.writeErrorToFile(
-            `Uncaught Exception at: ${new Date().toISOString()}
-        Error: ${err.message}
-        Stack: ${err.stack}
-        Origin: ${origin}`
-        );
         setTimeout(() => process.exit(1), 100);
     });
 
     process.on("unhandledRejection", (reason, promise) => {
-        LOGSCLASS.writeErrorToFile(
-            `Unhandled Rejection at: ${new Date().toISOString()}
-        Reason: ${reason}
-        Promise: ${promise}`
-        );
     });
 }
 

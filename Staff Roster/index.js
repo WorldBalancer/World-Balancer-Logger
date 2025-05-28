@@ -25,7 +25,6 @@ SOFTWARE.
 const fs = require("fs");
 const FuzzySet = require("fuzzyset");
 const { initializeConfig, loadConfig } = require("../Configfiles/configManager.js");
-const { LOGSCLASS, StaffROSter } = require("../functions/logsclass.js");
 const main = require("../main.js");
 const { sendToWebhook } = require("../webhook/index.js");
 
@@ -42,7 +41,6 @@ async function readCsvFile(filePath) {
             if (err) {
                 console.error("Error reading CSV file:", err);
                 reject(err);
-                LOGSCLASS.writeErrorToFile(err);
             } else {
                 resolve(data);
             }
@@ -118,8 +116,6 @@ const config = await loadConfig(); // Load the config
             formattedLogMessage,
             displayName,
         ];
-
-        StaffROSter.writedataToFile(dataToWrite);
 
         main.log(
             `Match found! - ${readableTime} staff roster - ${displayName} (${userId}) eventType: ${eventType}`,
