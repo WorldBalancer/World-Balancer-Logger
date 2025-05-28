@@ -111,21 +111,6 @@ async function loadConfig() {
 /**
  *
  *
- * @return {*} 
- */
-async function twoloadConfig() {
-    try {
-        const data = await fs.readFile(configFilePath, "utf8");
-        return JSON.parse(data);
-    } catch (error) {
-        console.error("loadConfig():", error);
-        return {};
-    }
-}
-
-/**
- *
- *
  * @param {*} config
  */
 async function saveConfig(config) {
@@ -224,6 +209,5 @@ async function initializeConfig() {
 module.exports = {
     loadConfig,
     saveConfig,
-    twoloadConfig,
     initializeConfig
 };

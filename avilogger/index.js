@@ -51,7 +51,7 @@ async function processAvatarid(log) {
         const response = await axios.post(ENDPOINT, payload, {
             headers: {
                 "Content-Type": "application/json",
-                "User-Agent": "World Balancer/2.0.0 contact@worldbalancer.com"
+                "User-Agent": "World Balancer/2.0.1 contact@worldbalancer.com"
             },
         });
 

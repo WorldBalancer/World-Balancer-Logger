@@ -24,7 +24,7 @@ SOFTWARE.
 
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
-const { twoloadConfig, saveConfig, initializeConfig } = require("./Configfiles/configManager.js");
+const { loadConfig, saveConfig, initializeConfig } = require("./Configfiles/configManager.js");
 const { version } = require("./package.json");
 
 
@@ -35,7 +35,7 @@ let mainWindow;
 ipcMain.handle("get-user-data-path", () => app.getPath("userData"));
 ipcMain.handle("load-config", async () => {
     try {
-        const config = await twoloadConfig();
+        const config = await loadConfig();
         return config;
     } catch (err) {
         console.error("Failed to load config:", err);
