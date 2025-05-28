@@ -103,12 +103,14 @@ function startServer() {
             LOGSCLASS.writeErrorToFile(errsleepy);
         }
 
-        socket.on('disconnect', () => {
+socket.on('disconnect', () => {
+          // empty because no specific disconnect handling required
         });
     });
 
     const PORT = 3055;
-    server.listen(PORT, () => {
+server.listen(PORT, () => {
+      // empty because no action needed when server starts listening
     });
 
     // ———————————————[Error Handling]———————————————

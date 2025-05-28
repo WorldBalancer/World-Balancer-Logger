@@ -177,7 +177,6 @@ async function monitorAndSend() {
     try {
         while (true) {
             await checkForNewFiles();
-            console.log('hello world')
             if (!currentLogFile) {
                 main.log("No log file selected. Waiting for a new log file...", "info", "mainlog");
                 await delay(1000);
@@ -185,8 +184,6 @@ async function monitorAndSend() {
             }
 
             const currentSize = fs.statSync(currentLogFile).size;
-            console.log(currentSize)
-            console.log('hello world')
             if (currentSize <= lastReadPosition) {
                 await delay(1000);
                 continue;

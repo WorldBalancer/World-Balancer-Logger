@@ -11,7 +11,7 @@ in the Software without restriction...
 const say = require("say");
 const { LOGSCLASS } = require("./logsclass.js");
 
-let ttsQueue = [];
+const ttsQueue = [];
 let isProcessing = false;
 
 /**

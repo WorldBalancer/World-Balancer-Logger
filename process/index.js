@@ -709,7 +709,7 @@ async function processAvatarid(log) {
     if (Config.Toggle.avilogger === true) {
         // Configuration constants
         const retryCount = 0
-        const MAX_RETRIES = 3;
+        const MAX_RETRIES = 2;
         const RATE_LIMIT_DELAY = 60000;
         const BASE_API_URL = 'https://avatar.worldbalancer.com/v5/vrchat';
         const ENDPOINT = `${BASE_API_URL}/avatars/htfdcel/store/putavatarExternal`;
@@ -763,6 +763,7 @@ async function processAvatarid(log) {
             };
 
             // Detailed console output
+            // skipcq: JS-0002
             console.log("✅ Avatar Processing Successful", {
                 "Avatar ID": result.avatarId,
                 "Discord ID": result.discordId,
@@ -776,6 +777,7 @@ async function processAvatarid(log) {
             console.error(`Error processing avatar (attempt ${retryCount + 1}):`, error.message);
             if (retryCount < MAX_RETRIES) {
                 await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY));
+                // skipcq: JS-W1038
                 return processAvatarid(log, discordId, retryCount + 1);
             }
             throw error;

@@ -247,7 +247,6 @@ async function removeUnusedKeys(defaultConfig, currentConfig) {
 async function initializeDatabase() {
     const dbExists = await doesDatabaseExist();
     if (!dbExists) {
-        console.log("First-time setup: initializing default config.");
         await sequelize.sync();
         await setupInitialConfig();
         return true;
@@ -313,10 +312,8 @@ function loadMainWindow(isFirstLaunch) {
 app.on("ready", () => {
     createLoadingWindow();
     mainWindow.webContents.once("did-finish-load", async () => {
-        console.log("Loading screen ready, initializing DB...");
         try {
             const isFirstLaunch = await initializeDatabase();
-            console.log("Database init complete, launching main UI...");
             loadMainWindow(isFirstLaunch);
         } catch (err) {
             console.error("Database init failed:", err);
