@@ -24,7 +24,7 @@ SOFTWARE.
 
 const fetch = require("node-fetch");
 const main = require("../main.js");
-const { initializeConfig, loadConfig } = require("../Configfiles/configManager.js");
+const { loadConfig } = require("../Configfiles/configManager.js");
 
 /**
  *

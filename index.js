@@ -42,6 +42,11 @@ const configDir = path.join(appInstallPath, "config");
 
 let errsleepy = "";
 
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function initializeConfig() {
     const Config = {
         Directories: {
@@ -95,12 +100,17 @@ const processAvatarid = require("./avilogger/index.js");
 let currentLogFile = null;
 let lastReadPosition = 0;
 
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function checkForNewFiles() {
     const Config = await initializeConfig(); // Fetch config settings from the database
     const logDirectory = Config.Directories?.LogDirectory;
 
     if (!logDirectory) {
-        errsleepy = `Log directory path is missing or null.`;
+        errsleepy = 'Log directory path is missing or null.';
         return;
     }
 
@@ -137,6 +147,13 @@ async function checkForNewFiles() {
     }
 }
 
+/**
+ *
+ *
+ * @param {*} currentLogFile
+ * @param {*} lastReadPosition
+ * @return {*} 
+ */
 async function readNewLogs(currentLogFile, lastReadPosition) {
     try {
         const fileData = await fs.promises.readFile(currentLogFile, "utf8");
@@ -157,6 +174,10 @@ async function readNewLogs(currentLogFile, lastReadPosition) {
     }
 }
 
+/**
+ *
+ *
+ */
 async function monitorAndSend() {
     const Config = await loadConfig(); // Fetch config settings from the database
 
@@ -376,7 +397,6 @@ async function monitorAndSend() {
                             StaffRosterleft(cleanedString, cleanUser);
 
                             const timestamp = Date.now() / 1000;
-                            const formattedLogMessage = `<t:${Math.round(timestamp)}:f> ${logParts.join(" ")}`;
 
                             const message = `<t:${Math.round(timestamp)}:f> VRChat Log - OnPlayerLeft ${cleanedString} ${cleanUser}`;
                             const notimestampmessage = `VRChat Log - OnPlayerLeft ${cleanedString} ${cleanUser}`;
@@ -420,20 +440,7 @@ async function monitorAndSend() {
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
 
-                        } else if (
-                            log.includes("VRC.Udon.VM.UdonVMException")
-                        ) {
-                            //used for see if any errors are thrown from a client user
-                            // https://creators.vrchat.com/worlds/udon/debugging-udon-projects/
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-                            main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook === true) {
-                                sendToWebhook(logParts.join(" "));
-                            }
-                        } else if (
+                        }else if (
                             log.includes(
                                 "[Behaviour] Event: Moderation_ResetShowUserAvatarToDefault"
                             )
@@ -591,6 +598,7 @@ async function monitorAndSend() {
                                         const queryIndex =
                                             instanceInfo.indexOf("?");
                                         if (queryIndex !== -1) {
+                                            // skipcq: JS-0230
                                             instanceInfo =
                                                 instanceInfo.substring(
                                                     0,
@@ -639,7 +647,7 @@ async function monitorAndSend() {
                                         }
                                     } else {
                                         main.log(
-                                            `Error: Unable to extract world ID and instance info`,
+                                            'Error: Unable to extract world ID and instance info',
                                             "info",
                                             "joinleavelog"
                                         );
@@ -653,7 +661,7 @@ async function monitorAndSend() {
                     lastReadPosition = newLastReadPosition;
                 } else {
                     main.log(
-                        `No log file selected. Waiting for a new log file...`,
+                        'No log file selected. Waiting for a new log file...',
                         "info",
                         "mainlog"
                     );
@@ -670,9 +678,10 @@ async function monitorAndSend() {
 monitorAndSend();
 
 // ———————————————[Error Handling]———————————————
-process.on("uncaughtException", (err, origin) => {
+process.on("uncaughtException", () => {
     setTimeout(() => process.exit(1), 100);
 });
 
-process.on("unhandledRejection", (reason, promise) => {
+process.on("unhandledRejection", () => {
+  // empty because ignoring
 });

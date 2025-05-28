@@ -21,91 +21,62 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-const fs = require("fs");
-const path = require("path");
+
 const axios = require("axios");
 const { loadConfig } = require("../Configfiles/configManager.js");
+const main = require("../main.js");
 
-const PROCESSED_FILE = path.join(__dirname, "processedAvatars.json");
-const processedAvatars = loadProcessedAvatars();
+const ENDPOINT = "https://avatar.worldbalancer.com/v1/vrchat/avatars/store/putavatarEx";
 
-function loadProcessedAvatars() {
-    if (!fs.existsSync(PROCESSED_FILE)) return new Set();
+/**
+ * Processes a single avatar log line (only once per avatar)
+ * @param {string} log
+ * @returns {Promise<object|undefined>}
+ */
+async function processAvatarid(log) {
+    const Config = await loadConfig();
+    if (Config?.Toggle?.avilogger === false) return;
 
-    try {
-        const data = fs.readFileSync(PROCESSED_FILE, "utf8");
-        const ids = JSON.parse(data);
-        return new Set(ids);
-    } catch (err) {
-        console.error("Failed to load processed avatar IDs:", err);
-        return new Set();
-    }
-}
-
-function saveProcessedAvatars(set) {
-    const array = Array.from(set);
-    fs.writeFileSync(PROCESSED_FILE, JSON.stringify(array, null, 2));
-}
-
-async function processAvatarid(log, retryCount = 0) {
-    const Config = await loadConfig(); // Fetch config settings from the database
-    if (Config.Toggle.avilogger === true) return;
-
-    const MAX_RETRIES = 2;
-    const RATE_LIMIT_DELAY = 60000;
-    const ENDPOINT = `https://avatar.worldbalancer.com/v5/vrchat/avatars/htfdcel/store/putavatarExternal`;
-
-    const discordId = Config.Userid.discordid;
-    if (!discordId) throw new Error("Discord ID not configured");
+    const discordId = Config?.Userid?.discordid;
+    if (!discordId) return;
 
     const avatarIdMatch = log.match(/avtr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-    if (!avatarIdMatch) {
-        console.log("No valid avatar ID found in the log.");
-        return;
-    }
+    if (!avatarIdMatch) return;
 
-    const fullAvatarId = avatarIdMatch[0];
+    const avatarId = avatarIdMatch[0];
 
-    if (processedAvatars.has(fullAvatarId)) {
-        console.log(`Skipping duplicate avatar ID: ${fullAvatarId}`);
-        return;
-    }
-
-    const postData = { id: fullAvatarId, userid: discordId };
+    const payload = { id: avatarId, userid: discordId };
 
     try {
-        const response = await axios.post(ENDPOINT, postData, {
+        const response = await axios.post(ENDPOINT, payload, {
             headers: {
                 "Content-Type": "application/json",
-            }
+                "User-Agent": "World Balancer/2.0.0 contact@worldbalancer.com"
+            },
         });
 
-        const responseData = response.data;
-
-        processedAvatars.add(fullAvatarId);
-        saveProcessedAvatars(processedAvatars);
-
-        const result = {
+        return {
             success: true,
-            avatarId: fullAvatarId,
+            avatarId,
             discordId,
-            apiResponse: responseData,
-            retries: retryCount,
+            apiResponse: response.data,
         };
 
-        console.log(`Avatar ID: ${result.avatarId} API Response: ${JSON.stringify(result.apiResponse)}`);
-        return result;
-
     } catch (error) {
-        console.error("POST failed:", error.message);
-
-        if (retryCount < MAX_RETRIES) {
-            console.log(`Retrying in ${RATE_LIMIT_DELAY / 1000} seconds...`);
-            await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY));
-            return processAvatarid(log, retryCount + 1);
+        if (error.response) {
+            main.log(
+                `API Error Response: ${JSON.stringify(error.response.data)}`,
+                "error",
+                "main"
+            );
         }
 
-        throw error;
+        return {
+            success: false,
+            avatarId,
+            discordId,
+            error: error.message,
+        };
     }
 }
 

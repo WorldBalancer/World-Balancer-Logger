@@ -213,7 +213,7 @@ async function initializeConfig() {
     const currentKeys = flattenKeys(currentConfig);
     for (const key of currentKeys) {
         if (!defaultKeys.includes(key)) {
-            setValueByPath(currentConfig, key, undefined);
+            setValueByPath(currentConfig, key);
         }
     }
 

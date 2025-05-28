@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 const axios = require("axios");
-const { initializeConfig, loadConfig } = require("../Configfiles/configManager.js");
+const { loadConfig } = require("../Configfiles/configManager.js");
 
 /**
  *
@@ -79,6 +79,7 @@ async function postToWebhook(url, data, headers) {
         if (error.response?.status === 429) {
             await new Promise((resolve) => setTimeout(resolve, 1000));
         } else {
+            // empty
         }
     }
 }

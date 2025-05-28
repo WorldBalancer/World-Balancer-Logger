@@ -24,7 +24,7 @@ SOFTWARE.
 
 const fs = require("fs");
 const FuzzySet = require("fuzzyset");
-const { initializeConfig, loadConfig } = require("../Configfiles/configManager.js");
+const { loadConfig } = require("../Configfiles/configManager.js");
 const main = require("../main.js");
 const { sendToWebhook } = require("../webhook/index.js");
 

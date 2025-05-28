@@ -99,22 +99,23 @@ function startServer() {
             errsleepy = `ERROR when sending initial data: ${error}`;
         }
 
-socket.on('disconnect', () => {
-          // empty because no specific disconnect handling required
+        socket.on('disconnect', () => {
+            // empty because no specific disconnect handling required
         });
     });
 
     const PORT = 3055;
-server.listen(PORT, () => {
-      // empty because no action needed when server starts listening
+    server.listen(PORT, () => {
+        // empty because no action needed when server starts listening
     });
 
     // ———————————————[Error Handling]———————————————
-    process.on("uncaughtException", (err, origin) => {
+    process.on("uncaughtException", () => {
         setTimeout(() => process.exit(1), 100);
     });
 
-    process.on("unhandledRejection", (reason, promise) => {
+    process.on("unhandledRejection", () => {
+        // empty because unhandled rejections are intentionally ignored
     });
 }
 
