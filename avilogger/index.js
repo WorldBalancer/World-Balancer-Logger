@@ -96,6 +96,7 @@ async function processAvatarid(log) {
                 "Content-Type": "application/json",
                 "User-Agent": "World Balancer/2.0.1 contact@worldbalancer.com"
             },
+            timeout: 5000
         });
 
         if (response.status === 200) {
