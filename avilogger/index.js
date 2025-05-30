@@ -23,10 +23,46 @@ SOFTWARE.
 */
 
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
 const { loadConfig } = require("../Configfiles/configManager.js");
 const main = require("../main.js");
+const pkgjn = require("../package.json");
 
 const ENDPOINT = "https://avatar.worldbalancer.com/v1/vrchat/avatars/store/putavatarEx";
+
+// Determine path to local config directory and processedAvatars.json
+const configDir = os.platform() === "win32"
+    ? path.join(os.homedir(), "AppData", "Roaming", pkgjn.name, "localconfig")
+    : path.join(os.homedir(), `.${pkgjn.name.toLowerCase()}`, "localconfig");
+
+const PROCESSED_FILE = path.join(configDir, "processedAvatars.json");
+
+// Load processed avatars from file
+function loadProcessedAvatars() {
+    if (!fs.existsSync(PROCESSED_FILE)) return new Set();
+    try {
+        const data = fs.readFileSync(PROCESSED_FILE, "utf8");
+        const ids = JSON.parse(data);
+        return new Set(Array.isArray(ids) ? ids : []);
+    } catch (err) {
+        main.log(`Failed to load processedAvatars.json: ${err.message}`, "warn", "main");
+        return new Set();
+    }
+}
+
+// Save processed avatars to file
+function saveProcessedAvatars(set) {
+    try {
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(PROCESSED_FILE, JSON.stringify(Array.from(set), null, 2));
+    } catch (err) {
+        main.log(`Failed to save processedAvatars.json: ${err.message}`, "error", "main");
+    }
+}
+
+const processedAvatars = loadProcessedAvatars();
 
 /**
  * Processes a single avatar log line (only once per avatar)
@@ -38,12 +74,19 @@ async function processAvatarid(log) {
     if (Config?.Toggle?.avilogger === false) return;
 
     const discordId = Config?.Userid?.discordid;
-    if (!discordId) return;
+    if (!discordId) {
+        main.log("Discord ID not found in config.", "warn", "main");
+        return;
+    }
 
     const avatarIdMatch = log.match(/avtr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
     if (!avatarIdMatch) return;
 
     const avatarId = avatarIdMatch[0];
+
+    if (processedAvatars.has(avatarId)) {
+        return;
+    }
 
     const payload = { id: avatarId, userid: discordId };
 
@@ -55,6 +98,14 @@ async function processAvatarid(log) {
             },
         });
 
+        if (response.status === 200) {
+
+            processedAvatars.add(avatarId);
+            saveProcessedAvatars(processedAvatars);
+        } else {
+            main.log(`Unexpected API status ${response.status} for ${avatarId}`, "warn", "main");
+        }
+
         return {
             success: true,
             avatarId,
@@ -64,11 +115,9 @@ async function processAvatarid(log) {
 
     } catch (error) {
         if (error.response) {
-            main.log(
-                `API Error Response: ${JSON.stringify(error.response.data)}`,
-                "error",
-                "main"
-            );
+            main.log(`API Error (${error.response.status}): ${JSON.stringify(error.response.data)}`, "error", "main");
+        } else {
+            main.log(`Request Failed: ${error.message}`, "error", "main");
         }
 
         return {

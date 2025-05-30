@@ -6,7 +6,7 @@
     "bin": "index.js",
     "author": "worldbalancer",
     "scripts": {
-        "test": "electron .",
+        "test": "electron --trace-warnings .",
         "build": "electron-builder build --win"
     },
     "build": {

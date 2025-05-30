@@ -108,6 +108,8 @@ function createLoadingWindow() {
         mainWindow.show();
     });
 
+    mainWindow.webContents.removeAllListeners("did-stop-loading");
+
     mainWindow.loadFile(path.join(__dirname, "loading.html"));
 }
 
@@ -151,5 +153,24 @@ app.on("activate", () => {
         createLoadingWindow();
     }
 });
+
+const origOn = require("events").EventEmitter.prototype.on;
+require("events").EventEmitter.prototype.on = function (event, fn) {
+    if (event === "did-stop-loading") {
+        //console.trace("Adding did-stop-loading listener");
+    }
+    return origOn.call(this, event, fn);
+};
+
+function maybeForceGC() {
+    if (global.gc) {
+        console.log("Forcing garbage collection...");
+        global.gc();
+    } else {
+        console.log("Manual GC not exposed; cannot force collection.");
+    }
+}
+
+setInterval(maybeForceGC, 5 * 60 * 1000);
 
 module.exports = { log };

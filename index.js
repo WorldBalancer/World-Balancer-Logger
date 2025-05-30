@@ -204,16 +204,15 @@ async function monitorAndSend() {
                             if (Config.Toggle.Webhook === true) {
                                 sendToWebhook(formattedLogMessage);
                             }
-                        } else if (log.includes("ModerationManager")) {
+                        } else if (log.includes("[ModerationManager]")) {
                             const logParts = log
                                 .split(" ")
                                 .filter((part) => part !== "");
+
                             const timestamp = Date.now() / 1000;
                             formattedLogMessage = `<t:${Math.round(
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
-
-                            ModClass.writeModerationToFile(formattedLogMessage);
 
                             if (Config.Toggle.Webhook === true) {
                                 sendToWebhook(logParts.join(" "));
@@ -227,6 +226,12 @@ async function monitorAndSend() {
                                     /A vote kick has been initiated against [^,]+/
                                 );
                             if (matchResult) {
+                                const timestamp = Date.now() / 1000;
+                                formattedLogMessage = `<t:${Math.round(
+                                    timestamp
+                                )}:f> A vote kick has been initiated against ${username}`;
+
+                                main.log(formattedLogMessage, "info", "modlog");
                                 if (Config.Toggle.TTS === true) {
                                     getDeviceVoices().then((list11) => {
                                         SayDeviceVoices(
@@ -249,8 +254,7 @@ async function monitorAndSend() {
                                     timestamp
                                 )}:f> ${username} has been kicked`;
 
-                                MODLOGCLASS.writeModerationlogToFile(formattedLogMessage)
-
+                                main.log(formattedLogMessage, "info", "modlog");
                             }
 
                             // Use regex to extract the username (supports names with or without ~)
@@ -262,8 +266,7 @@ async function monitorAndSend() {
                                 const timestamp = Math.round(Date.now() / 1000);
                                 const formattedLogMessage = `<t:${timestamp}:f> ${username} has been warned`;
 
-                                MODLOGCLASS.writeModerationlogToFile(formattedLogMessage);
-
+                                main.log(formattedLogMessage, "info", "modlog");
                             }
 
                             const usernamemicoff = logString.match(/Microphone has been turned off for (\S+)/);
@@ -275,7 +278,8 @@ async function monitorAndSend() {
                                     timestamp
                                 )}:f> ${username} Microphone has been turned off for`;
 
-                                MODLOGCLASS.writeModerationlogToFile(formattedLogMessage);
+                                main.log(formattedLogMessage, "info", "modlog");
+
                             }
 
                         } else if (log.includes("[Behaviour] OnPlayerJoined")) {
@@ -404,7 +408,7 @@ async function monitorAndSend() {
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
 
-                        }else if (
+                        } else if (
                             log.includes(
                                 "[Behaviour] Event: Moderation_ResetShowUserAvatarToDefault"
                             )
@@ -528,12 +532,19 @@ async function monitorAndSend() {
                                 " "
                             )}`;
 
-                            main.log(logParts.join(" "), "info", "modlog");
                             if (Config.Toggle.Webhook === true) {
                                 sendToWebhook(formattedLogMessage);
                             }
                         } else if (
                             log.includes("[API] Requesting Get avatars")
+                        ) {
+                            processAvatarid(log)
+                        } else if (
+                            log.includes("[API] ApiAvatar:")
+                        ) {
+                            processAvatarid(log)
+                        } else if (
+                            log.includes("[API] <color=cyan>Fetched ApiModel with id")
                         ) {
                             processAvatarid(log)
                         } else if (
@@ -647,5 +658,5 @@ process.on("uncaughtException", () => {
 });
 
 process.on("unhandledRejection", () => {
-  // empty because ignoring
+    // empty because ignoring
 });
