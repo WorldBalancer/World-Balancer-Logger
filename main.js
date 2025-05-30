@@ -162,11 +162,18 @@ require("events").EventEmitter.prototype.on = function (event, fn) {
     return origOn.call(this, event, fn);
 };
 
+
+/**
+ *
+ *
+ */
 function maybeForceGC() {
     if (global.gc) {
+        // skipcq: JS-0002
         console.log("Forcing garbage collection...");
         global.gc();
     } else {
+        // skipcq: JS-0002
         console.log("Manual GC not exposed; cannot force collection.");
     }
 }
