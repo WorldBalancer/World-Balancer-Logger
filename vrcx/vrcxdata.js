@@ -32,9 +32,9 @@ const { loadConfig } = require("../Configfiles/configManager.js");
  * @return {*} 
  */
 async function vrcxdata() {
-    
 
-const config = await loadConfig(); // Load the config // Fetch config settings from the database
+
+    const config = await loadConfig(); // Load the config // Fetch config settings from the database
 
     if (!config.vrcx || !config.Toggle.vrcxdata) {
         return; // No need to fetch data from vrcx if it's not enabled in the configuration

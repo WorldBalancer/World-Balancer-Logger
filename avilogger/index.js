@@ -40,6 +40,11 @@ const configDir = os.platform() === "win32"
 const PROCESSED_FILE = path.join(configDir, "processedAvatars.json");
 
 // Load processed avatars from file
+/**
+ *
+ *
+ * @return {*} 
+ */
 function loadProcessedAvatars() {
     if (!fs.existsSync(PROCESSED_FILE)) return new Set();
     try {
@@ -53,6 +58,11 @@ function loadProcessedAvatars() {
 }
 
 // Save processed avatars to file
+/**
+ *
+ *
+ * @param {*} set
+ */
 function saveProcessedAvatars(set) {
     try {
         fs.mkdirSync(configDir, { recursive: true });

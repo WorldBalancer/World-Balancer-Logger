@@ -387,14 +387,6 @@ async function monitorAndSend() {
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
 
-                        } else if (log.includes("[Behaviour] OnPlayerLeftRoom")) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-
-                            formattedLogMessage = `${logParts.join(" ")}`;
-
                         } else if (log.includes("[Behaviour] Initialized player")) {
                             const logParts = log
                                 .split(" ")
@@ -516,24 +508,6 @@ async function monitorAndSend() {
                                     "warn",
                                     "vrchatswitchavilog"
                                 );
-                            }
-                        } else if (
-                            log.includes("[StickersManager] ")
-                        ) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf(""), 1);
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> vrchat logs - StickersManager ${logParts.join(
-                                " "
-                            )}`;
-
-                            if (Config.Toggle.Webhook === true) {
-                                sendToWebhook(formattedLogMessage);
                             }
                         } else if (
                             log.includes("[API] Requesting Get avatars")
