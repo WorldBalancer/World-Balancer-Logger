@@ -1,6 +1,6 @@
 {
     "name": "world-balancer-logger",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "description": "Logger",
     "main": "index.js",
     "bin": "index.js",
@@ -34,9 +34,7 @@
         "node-fetch": "2.7.0",
         "path": "^0.12.7",
         "say": "^0.16.0",
-        "sequelize": "^6.37.7",
-        "socket.io": "^4.8.1",
-        "sqlite3": "^5.1.7"
+        "socket.io": "^4.8.1"
     },
     "devDependencies": {
         "electron": "^31.3.1",

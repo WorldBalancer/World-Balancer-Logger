@@ -57,7 +57,7 @@ const extractAndSendNewAvatarIDs = require("./avilogger/amplitudeavid.js");
         startServer()
     }
 
-    if (Config?.Toggle?.avilogger === false) {
+    if (Config.Toggle.avilogger === true) {
         extractAndSendNewAvatarIDs()
     }
 
@@ -73,6 +73,11 @@ const exavartarids = extractAndSendNewAvatarIDs
 let exavartaridshIntervalTimer;
 
 // Initial setup for the timer
+/**
+ *
+ *
+ * @return {*} 
+ */
 async function initializeTimer() {
     const Config = await loadConfig(); // Fetch config settings from the database
     try {
@@ -81,7 +86,7 @@ async function initializeTimer() {
         }
 
         exavartaridshIntervalTimer = setInterval(async () => {
-            if (Config?.Toggle?.avilogger === false) {
+            if (Config.Toggle.avilogger === true) {
                 await exavartarids();
             }
         }, TIMER_INTERVAL);
@@ -91,8 +96,7 @@ async function initializeTimer() {
             clearInterval(exavartaridshIntervalTimer);
         };
     } catch (error) {
-        errsleepy = `Error initializing timer: ${error.message}`;
-        LOGSCLASS.writeErrorToFile(errsleepy);
+        console.error(`Error initializing timer: ${error}`)
     }
 }
 

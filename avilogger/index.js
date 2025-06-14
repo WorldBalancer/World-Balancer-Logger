@@ -52,7 +52,7 @@ function loadProcessedAvatars() {
         const ids = JSON.parse(data);
         return new Set(Array.isArray(ids) ? ids : []);
     } catch (err) {
-        main.log(`Failed to load processedAvatars.json: ${err.message}`, "warn", "main");
+        main.log(`Failed to load processedAvatars.json: ${err.message}`, "warn", "mainlog");
         return new Set();
     }
 }
@@ -68,7 +68,7 @@ function saveProcessedAvatars(set) {
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(PROCESSED_FILE, JSON.stringify(Array.from(set), null, 2));
     } catch (err) {
-        main.log(`Failed to save processedAvatars.json: ${err.message}`, "error", "main");
+        main.log(`Failed to save processedAvatars.json: ${err.message}`, "error", "mainlog");
     }
 }
 
@@ -85,7 +85,7 @@ async function processAvatarid(log) {
 
     const discordId = Config?.Userid?.discordid;
     if (!discordId) {
-        main.log("Discord ID not found in config.", "warn", "main");
+        main.log("Discord ID not found in config.", "warn", "mainlog");
         return;
     }
 
@@ -104,7 +104,7 @@ async function processAvatarid(log) {
         const response = await axios.post(ENDPOINT, payload, {
             headers: {
                 "Content-Type": "application/json",
-                "User-Agent": "World Balancer/2.0.3 contact@worldbalancer.com"
+                "User-Agent": "World Balancer/2.0.4 contact@worldbalancer.com"
             },
             timeout: 5000
         });
@@ -114,7 +114,7 @@ async function processAvatarid(log) {
             processedAvatars.add(avatarId);
             saveProcessedAvatars(processedAvatars);
         } else {
-            main.log(`Unexpected API status ${response.status} for ${avatarId}`, "warn", "main");
+            main.log(`Unexpected API status ${response.status} for ${avatarId}`, "warn", "mainlog");
         }
 
         return {
@@ -126,9 +126,9 @@ async function processAvatarid(log) {
 
     } catch (error) {
         if (error.response) {
-            main.log(`API Error (${error.response.status}): ${JSON.stringify(error.response.data)}`, "error", "main");
+            main.log(`API Error (${error.response.status}): ${JSON.stringify(error.response.data)}`, "error", "mainlog");
         } else {
-            main.log(`Request Failed: ${error.message}`, "error", "main");
+            main.log(`Request Failed: ${error.message}`, "error", "mainlog");
         }
 
         return {

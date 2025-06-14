@@ -65,7 +65,7 @@ function loadProcessedAvatars() {
         const ids = JSON.parse(data);
         return new Set(Array.isArray(ids) ? ids : []);
     } catch (err) {
-        main.log(`Failed to load processedAvatars.json: ${err.message}`, "warn", "main");
+        main.log(`Failed to load processedAvatars.json: ${err.message}`, "info", "mainlog");
         return new Set();
     }
 }
@@ -82,7 +82,7 @@ function saveProcessedAvatars(set) {
         fs.mkdirSync(configDir, { recursive: true });
         fs.writeFileSync(PROCESSED_FILE, JSON.stringify(Array.from(set), null, 2));
     } catch (err) {
-        main.log(`Failed to save processedAvatars.json: ${err.message}`, "error", "main");
+        main.log(`Failed to save processedAvatars.json: ${err.message}`, "error", "mainlog");
     }
 }
 
@@ -102,7 +102,7 @@ async function extractAndSendNewAvatarIDs() {
 
         const discordId = Config?.Userid?.discordid;
         if (!discordId) {
-            main.log("Discord ID not found in config.", "warn", "main");
+            main.log("Discord ID not found in config.", "info", "mainlog");
             return;
         }
 
@@ -126,7 +126,7 @@ async function extractAndSendNewAvatarIDs() {
                 const response = await axios.post(ENDPOINT, payload, {
                     headers: {
                         "Content-Type": "application/json",
-                        "User-Agent": "World Balancer/2.0.3 contact@worldbalancer.com"
+                        "User-Agent": "World Balancer/2.0.4 contact@worldbalancer.com"
                     },
                     timeout: 5000
                 });
@@ -134,16 +134,16 @@ async function extractAndSendNewAvatarIDs() {
                 if (response.status === 200) {
                     processedAvatars.add(avatarId);
                     updated = true;
-                    main.log(`Avatar ID ${avatarId} sent successfully.`, "warn", "main");
+                    main.log(`Avatar ID ${avatarId} sent successfully.`, "info", "mainlog");
                 } else {
-                    main.log(`Unexpected API status ${response.status} for ${avatarId}`, "warn", "main");
+                    main.log(`Unexpected API status ${response.status} for ${avatarId}`, "info", "mainlog");
                 }
 
             } catch (error) {
                 if (error.response) {
-                    main.log(`API Error (${error.response.status}) for ${avatarId}: ${JSON.stringify(error.response.data)}`, "error", "main");
+                    main.log(`API Error (${error.response.status}) for ${avatarId}: ${JSON.stringify(error.response.data)}`, "error", "mainlog");
                 } else {
-                    main.log(`Request Failed for ${avatarId}: ${error.message}`, "error", "main");
+                    main.log(`Request Failed for ${avatarId}: ${error.message}`, "error", "mainlog");
                 }
             }
         }
@@ -153,7 +153,7 @@ async function extractAndSendNewAvatarIDs() {
         }
 
     } catch (err) {
-        main.log(`Failed to read amplitude.cache: ${err.message}`, "error", "main");
+        main.log(`Failed to read amplitude.cache: ${err.message}`, "error", "mainlog");
     }
 }
 
