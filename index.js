@@ -47,6 +47,8 @@ const { getDeviceVoices, SayDeviceVoices } = require("./functions/TTS.js");
 
 const processAvatarid = require("./avilogger/index.js");
 
+const extractAndSendNewAvatarIDs = require("./avilogger/amplitudeavid.js");
+
 // Wrap in an IIFE (Immediately Invoked Function Expression) to use await at the top level
 (async () => {
     const Config = await loadConfig(); // Fetch config settings from the database
@@ -55,9 +57,44 @@ const processAvatarid = require("./avilogger/index.js");
         startServer()
     }
 
+    if (Config?.Toggle?.avilogger === false) {
+        extractAndSendNewAvatarIDs()
+    }
+
 })().catch((error) => {
     console.error("Error initializing config:", error);
 });
+
+// Timer configuration
+const TIMER_INTERVAL = 1000; // 1 second
+const exavartarids = extractAndSendNewAvatarIDs
+
+// Create a timer to call FetchLists every 25 minutes
+let exavartaridshIntervalTimer;
+
+// Initial setup for the timer
+async function initializeTimer() {
+    const Config = await loadConfig(); // Fetch config settings from the database
+    try {
+        if (exavartaridshIntervalTimer) {
+            clearInterval(exavartaridshIntervalTimer);
+        }
+
+        exavartaridshIntervalTimer = setInterval(async () => {
+            if (Config?.Toggle?.avilogger === false) {
+                await exavartarids();
+            }
+        }, TIMER_INTERVAL);
+
+        // Clean up the timer when it's no longer needed
+        return () => {
+            clearInterval(exavartaridshIntervalTimer);
+        };
+    } catch (error) {
+        errsleepy = `Error initializing timer: ${error.message}`;
+        LOGSCLASS.writeErrorToFile(errsleepy);
+    }
+}
 
 let currentLogFile = null;
 let lastReadPosition = 0;
@@ -570,6 +607,7 @@ async function monitorAndSend() {
 }
 
 monitorAndSend();
+initializeTimer();
 
 // ———————————————[Error Handling]———————————————
 process.on("uncaughtException", () => {

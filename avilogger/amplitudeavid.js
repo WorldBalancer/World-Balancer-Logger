@@ -23,23 +23,36 @@ SOFTWARE.
 */
 
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
 const os = require("os");
+const path = require("path");
+const fs = require("fs");
+const fsp = fs.promises;
 const { loadConfig } = require("../Configfiles/configManager.js");
 const main = require("../main.js");
 const pkgjn = require("../package.json");
 
+// Path to amplitude.cache (Temp\VRChat\VRChat)
+const filePath = path.join(
+    os.homedir(),
+    "AppData",
+    "Local",
+    "Temp",
+    "VRChat",
+    "VRChat",
+    "amplitude.cache"
+);
+
 const ENDPOINT = "https://avatar.worldbalancer.com/v1/vrchat/avatars/store/putavatarEx";
 
-// Determine path to local config directory and processedAvatars.json
+// Path to store processed avatars (AppData/Roaming or ~/.appname)
 const configDir = os.platform() === "win32"
     ? path.join(os.homedir(), "AppData", "Roaming", pkgjn.name, "localconfig")
     : path.join(os.homedir(), `.${pkgjn.name.toLowerCase()}`, "localconfig");
 
 const PROCESSED_FILE = path.join(configDir, "processedAvatars.json");
 
-// Load processed avatars from file
+
+// Load previously processed avatar IDs
 /**
  *
  *
@@ -57,7 +70,8 @@ function loadProcessedAvatars() {
     }
 }
 
-// Save processed avatars to file
+
+// Save current set of avatar IDs
 /**
  *
  *
@@ -74,70 +88,73 @@ function saveProcessedAvatars(set) {
 
 const processedAvatars = loadProcessedAvatars();
 
+
 /**
- * Processes a single avatar log line (only once per avatar)
- * @param {string} log
- * @returns {Promise<object|undefined>}
+ *
+ *
+ * @return {*} 
  */
-async function processAvatarid(log) {
+async function extractAndSendNewAvatarIDs() {
     const Config = await loadConfig();
-    if (Config?.Toggle?.avilogger === false) return;
-
-    const discordId = Config?.Userid?.discordid;
-    if (!discordId) {
-        main.log("Discord ID not found in config.", "warn", "main");
-        return;
-    }
-
-    const avatarIdMatch = log.match(/avtr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-    if (!avatarIdMatch) return;
-
-    const avatarId = avatarIdMatch[0];
-
-    if (processedAvatars.has(avatarId)) {
-        return;
-    }
-
-    const payload = { id: avatarId, userid: discordId };
 
     try {
-        const response = await axios.post(ENDPOINT, payload, {
-            headers: {
-                "Content-Type": "application/json",
-                "User-Agent": "World Balancer/2.0.3 contact@worldbalancer.com"
-            },
-            timeout: 5000
-        });
+        const data = await fsp.readFile(filePath, "utf8");
 
-        if (response.status === 200) {
+        const discordId = Config?.Userid?.discordid;
+        if (!discordId) {
+            main.log("Discord ID not found in config.", "warn", "main");
+            return;
+        }
 
-            processedAvatars.add(avatarId);
+        const avatarIdMatches = data.match(/avtr_[\w-]+/g);
+        if (!avatarIdMatches || avatarIdMatches.length === 0) return;
+
+        // 🔧 Deduplicate avatar IDs from file
+        const uniqueAvatars = [...new Set(avatarIdMatches)];
+
+        let updated = false;
+
+        for (const avatarId of uniqueAvatars) {
+            if (processedAvatars.has(avatarId)) continue;
+
+            const payload = {
+                id: avatarId,
+                userid: discordId
+            };
+
+            try {
+                const response = await axios.post(ENDPOINT, payload, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        "User-Agent": "World Balancer/2.0.3 contact@worldbalancer.com"
+                    },
+                    timeout: 5000
+                });
+
+                if (response.status === 200) {
+                    processedAvatars.add(avatarId);
+                    updated = true;
+                    main.log(`Avatar ID ${avatarId} sent successfully.`, "warn", "main");
+                } else {
+                    main.log(`Unexpected API status ${response.status} for ${avatarId}`, "warn", "main");
+                }
+
+            } catch (error) {
+                if (error.response) {
+                    main.log(`API Error (${error.response.status}) for ${avatarId}: ${JSON.stringify(error.response.data)}`, "error", "main");
+                } else {
+                    main.log(`Request Failed for ${avatarId}: ${error.message}`, "error", "main");
+                }
+            }
+        }
+
+        if (updated) {
             saveProcessedAvatars(processedAvatars);
-        } else {
-            main.log(`Unexpected API status ${response.status} for ${avatarId}`, "warn", "main");
         }
 
-        return {
-            success: true,
-            avatarId,
-            discordId,
-            apiResponse: response.data,
-        };
-
-    } catch (error) {
-        if (error.response) {
-            main.log(`API Error (${error.response.status}): ${JSON.stringify(error.response.data)}`, "error", "main");
-        } else {
-            main.log(`Request Failed: ${error.message}`, "error", "main");
-        }
-
-        return {
-            success: false,
-            avatarId,
-            discordId,
-            error: error.message,
-        };
+    } catch (err) {
+        main.log(`Failed to read amplitude.cache: ${err.message}`, "error", "main");
     }
 }
 
-module.exports = processAvatarid;
+module.exports = extractAndSendNewAvatarIDs;
