@@ -1,6 +1,6 @@
 {
-    "name": "world-balancer-logger-test",
-    "version": "2.0.2",
+    "name": "world-balancer-logger",
+    "version": "2.0.3",
     "description": "Logger",
     "main": "index.js",
     "bin": "index.js",
