@@ -157,27 +157,12 @@ app.on("activate", () => {
 const origOn = require("events").EventEmitter.prototype.on;
 require("events").EventEmitter.prototype.on = function (event, fn) {
     if (event === "did-stop-loading") {
-        //console.trace("Adding did-stop-loading listener");
+        const count = this.listenerCount(event);
+        if (count >= 10) {
+            return this;
+        }
     }
     return origOn.call(this, event, fn);
 };
-
-
-/**
- *
- *
- */
-function maybeForceGC() {
-    if (global.gc) {
-        // skipcq: JS-0002
-        console.log("Forcing garbage collection...");
-        global.gc();
-    } else {
-        // skipcq: JS-0002
-        console.log("Manual GC not exposed; cannot force collection.");
-    }
-}
-
-setInterval(maybeForceGC, 5 * 60 * 1000);
 
 module.exports = { log };

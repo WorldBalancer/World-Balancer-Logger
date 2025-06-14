@@ -65,7 +65,6 @@ function pushWebsite() {
                 break;
         }
 
-        //console.log("Sending update to clients:", string);
         io.emit('update', { subtitle: string });
 
     } catch (error) {

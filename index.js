@@ -26,8 +26,6 @@ const path = require("path");
 const main = require("./main");
 const { loadConfig } = require("./Configfiles/configManager.js");
 
-let errsleepy = "";
-
 // self server worldid, instanceid, instanceInfo
 const {
     startServer,
@@ -65,76 +63,78 @@ let currentLogFile = null;
 let lastReadPosition = 0;
 
 /**
+ * Checks for the newest log file in the configured directory.
+ * Switches to it if it's different from the currently loaded one.
+ */
+
+/**
  *
  *
  * @return {*} 
  */
 async function checkForNewFiles() {
-    const Config = await loadConfig(); // Fetch config settings from the database
-    const logDirectory = Config.Directories?.LogDirectory;
-
-    if (!logDirectory) {
-        errsleepy = 'Log directory path is missing or null.';
-        return;
-    }
-
-    let logFileNames;
     try {
-        logFileNames = await fs.promises.readdir(logDirectory);
-    } catch (err) {
-        console.error(`Failed to read directory: ${logDirectory}`, err);
-        errsleepy = `Failed to read directory: ${logDirectory} ${err}`;
-        main.log(errsleepy, "info", "mainlog");
-        return;
-    }
+        const Config = await loadConfig();
+        const logDirectory = Config.Directories?.LogDirectory;
 
-    const newLogFileNames = logFileNames.filter((fileName) =>
-        fileName?.startsWith("output_log")
-    );
+        if (!logDirectory) {
+            const msg = 'Log directory path is missing or null.';
+            main.log(msg, "error", "mainlog");
+            return;
+        }
 
-    newLogFileNames.sort();
+        const logFileNames = await fs.promises.readdir(logDirectory);
+        const newLogFileNames = logFileNames.filter(name =>
+            name?.startsWith("output_log")
+        ).sort();
 
-    if (newLogFileNames.length > 0) {
-        const latestLogFile = path.join(
-            logDirectory,
-            newLogFileNames[newLogFileNames.length - 1]
-        );
+        if (newLogFileNames.length === 0) return;
+
+        const latestLogFile = path.join(logDirectory, newLogFileNames.at(-1));
+
         if (latestLogFile !== currentLogFile) {
             currentLogFile = latestLogFile;
             lastReadPosition = 0;
-            main.log(
-                `Switching to new log file: ${currentLogFile}`,
-                "info",
-                "mainlog"
-            );
+            main.log(`Switching to new log file: ${currentLogFile}`, "info", "mainlog");
         }
+    } catch (err) {
+        main.log(`Failed to check for new files: ${err.message}`, "error", "mainlog");
     }
 }
 
 /**
- *
- *
- * @param {*} currentLogFile
- * @param {*} lastReadPosition
- * @return {*} 
+ * Reads new log lines from the current log file.
+ * 
+ * @param {string} currentLogFile - Path to the log file.
+ * @param {number} lastReadPosition - Last byte read from the file.
+ * @returns {Promise<[string[], number]>} - New log lines and updated read position.
  */
 async function readNewLogs(currentLogFile, lastReadPosition) {
     try {
-        const fileData = await fs.promises.readFile(currentLogFile, "utf8");
+        await fs.promises.access(currentLogFile, fs.constants.R_OK);
+        const { size } = await fs.promises.stat(currentLogFile);
 
-        if (!fileData) {
-            return [[], 0]; // Return an empty array and 0 as the last read position
+        if (size <= lastReadPosition) {
+            return [[], lastReadPosition];
         }
 
-        const newData = fileData.slice(lastReadPosition);
-        const newLogs = newData.split("\n").filter(Boolean); // Remove empty strings
-        const newLastReadPosition = fileData.length;
+        const stream = fs.createReadStream(currentLogFile, {
+            encoding: 'utf8',
+            start: lastReadPosition,
+            end: size - 1,
+        });
 
-        return [newLogs, newLastReadPosition]; // Return an array with newLogs and newLastReadPosition
+        let newData = '';
+        for await (const chunk of stream) {
+            newData += chunk;
+        }
+
+        const newLogs = newData.split('\n').filter(Boolean);
+
+        return [newLogs, size];
     } catch (err) {
-        errsleepy = `Error reading log file: ${err}`;
-
-        throw err; // Rethrow the error to propagate it up the call stack
+        main.log(`Error reading log file: ${err.message}`, "error", "mainlog");
+        return [[], lastReadPosition];
     }
 }
 
@@ -144,25 +144,25 @@ async function readNewLogs(currentLogFile, lastReadPosition) {
  */
 async function monitorAndSend() {
     const Config = await loadConfig(); // Fetch config settings from the database
-
-    try {
-        while (true) {
+    while (true) {
+        try {
             // Check for new files in each loop iteration
             await checkForNewFiles();
             if (currentLogFile) {
-                const currentSize = fs.statSync(currentLogFile).size;
+                const { size: currentSize } = await fs.promises.stat(currentLogFile);
                 if (currentSize > lastReadPosition) {
                     const [newLogs, newLastReadPosition] = await readNewLogs(
                         currentLogFile,
                         lastReadPosition
                     );
 
-                    newLogs.forEach(async (log) => {
+                    lastReadPosition = newLastReadPosition;
+
+                    for (const log of newLogs) {
                         // Check log length before processing
                         if (log.length > 10000) { // Adjust the limit as necessary
                             main.log(`Log entry too long, skipping: ${log.length} only dev test`, "warn", "mainlog");
-                            errsleepy = `Log entry too long, skipping: ${log.length} only dev test`;
-                            return; // Skip processing this log entry
+                            continue; // Skip processing this log entry
                         }
                         if (log.includes("Joining or Creating Room")) {
                             const logParts = log
@@ -201,9 +201,6 @@ async function monitorAndSend() {
                                 "joinleavelog"
                             );
 
-                            if (Config.Toggle.Webhook === true) {
-                                sendToWebhook(formattedLogMessage);
-                            }
                         } else if (log.includes("[ModerationManager]")) {
                             const logParts = log
                                 .split(" ")
@@ -226,12 +223,6 @@ async function monitorAndSend() {
                                     /A vote kick has been initiated against [^,]+/
                                 );
                             if (matchResult) {
-                                const timestamp = Date.now() / 1000;
-                                formattedLogMessage = `<t:${Math.round(
-                                    timestamp
-                                )}:f> A vote kick has been initiated against ${username}`;
-
-                                main.log(formattedLogMessage, "info", "modlog");
                                 if (Config.Toggle.TTS === true) {
                                     getDeviceVoices().then((list11) => {
                                         SayDeviceVoices(
@@ -400,25 +391,6 @@ async function monitorAndSend() {
                                 timestamp
                             )}:f> ${logParts.join(" ")}`;
 
-                        } else if (
-                            log.includes(
-                                "[Behaviour] Event: Moderation_ResetShowUserAvatarToDefault"
-                            )
-                        ) {
-                            const logParts = log
-                                .split(" ")
-                                .filter((part) => part !== "");
-                            logParts.splice(logParts.indexOf("[Behaviour]"), 1);
-
-                            const timestamp = Date.now() / 1000;
-                            formattedLogMessage = `<t:${Math.round(
-                                timestamp
-                            )}:f> ${logParts.join(" ")}`;
-
-                            main.log(logParts.join(" "), "info", "modlog");
-                            if (Config.Toggle.Webhook === true) {
-                                sendToWebhook(logParts.join(" "));
-                            }
                         } else if (log.includes("USharpVideo")) {
                             // Clean out the long 'resolved to' URL if present
                             const cleanedLog = log.replace(/resolved to\s+['"]https?:\/\/[^\s'"]+['"]/, "resolved to");
@@ -493,16 +465,6 @@ async function monitorAndSend() {
                                     );
                                 }
                             } else {
-                                // Log more details for debugging
-                                const timestamp = Date.now();
-                                const formattedLogMessage = `<t:${Math.round(
-                                    timestamp / 1000
-                                )}:f> Invalid log format or missing data: ${logParts}`;
-
-                                // Process and write the log
-                                AVISwitchinglogsClass.writeModerationToFile(
-                                    formattedLogMessage
-                                );
                                 main.log(
                                     "Invalid log format or missing data",
                                     "warn",
@@ -511,14 +473,6 @@ async function monitorAndSend() {
                             }
                         } else if (
                             log.includes("[API] Requesting Get avatars")
-                        ) {
-                            processAvatarid(log)
-                        } else if (
-                            log.includes("[API] ApiAvatar:")
-                        ) {
-                            processAvatarid(log)
-                        } else if (
-                            log.includes("[API] <color=cyan>Fetched ApiModel with id")
                         ) {
                             processAvatarid(log)
                         } else if (
@@ -603,24 +557,15 @@ async function monitorAndSend() {
                                     }
                                 }
                             } catch (error) {
-                                errsleepy = `error stack: ${error}`;
                             }
                         }
-                    });
-                    lastReadPosition = newLastReadPosition;
-                } else {
-                    main.log(
-                        'No log file selected. Waiting for a new log file...',
-                        "info",
-                        "mainlog"
-                    );
+                    }
                 }
             }
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust the polling interval as needed
+            await new Promise(resolve => setTimeout(resolve, 500)); // Sleep to avoid CPU overuse
+        } catch (error) {
+            main.log(`error stack of monitor of vrchat: ${error.message}`, "info", "mainlog");
         }
-    } catch (error) {
-        errsleepy = `error stack of monitor of vrchat: ${error.message}`;
-        main.log(errsleepy, "info", "mainlog");
     }
 }
 
