@@ -1,5 +1,5 @@
 {
-    "name": "world-balancer-logger-test",
+    "name": "world-balancer-logger",
     "version": "2.0.3",
     "description": "Logger",
     "main": "index.js",
