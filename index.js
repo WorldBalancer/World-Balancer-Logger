@@ -45,9 +45,9 @@ const { vrcxdata } = require("./vrcx/vrcxdata.js");
 
 const { getDeviceVoices, SayDeviceVoices } = require("./functions/TTS.js");
 
-const processAvatarid = require("./avilogger/index.js");
-
 const extractAndSendNewAvatarIDs = require("./avilogger/amplitudeavid.js");
+
+const findAvatarIdsInLogs = require("./avilogger/findavataridsinlogs.js");
 
 // Wrap in an IIFE (Immediately Invoked Function Expression) to use await at the top level
 (async () => {
@@ -69,7 +69,7 @@ const extractAndSendNewAvatarIDs = require("./avilogger/amplitudeavid.js");
 const TIMER_INTERVAL = 1000; // 1 second
 const exavartarids = extractAndSendNewAvatarIDs
 
-// Create a timer to call FetchLists every 25 minutes
+// Create a timer to call FetchLists every 20 minutes
 let exavartaridshIntervalTimer;
 
 // Initial setup for the timer
@@ -94,6 +94,41 @@ async function initializeTimer() {
         // Clean up the timer when it's no longer needed
         return () => {
             clearInterval(exavartaridshIntervalTimer);
+        };
+    } catch (error) {
+        console.error(`Error initializing timer: ${error}`)
+    }
+}
+
+// Timer configuration
+const TIMER_INTERVALtwo = 50000; // 50 seconds
+const findAvatarIdsInlog = findAvatarIdsInLogs
+
+// Create a timer to call FetchLists every 50 seconds
+let findAvatarIdsInlogIntervalTimer;
+
+// Initial setup for the timer
+/**
+ *
+ *
+ * @return {*} 
+ */
+async function initializeTimertwo() {
+    const Config = await loadConfig(); // Fetch config settings from the database
+    try {
+        if (findAvatarIdsInlogIntervalTimer) {
+            clearInterval(findAvatarIdsInlogIntervalTimer);
+        }
+
+        findAvatarIdsInlogIntervalTimer = setInterval(async () => {
+            if (Config.Toggle.avilogger === true) {
+                await findAvatarIdsInlog();
+            }
+        }, TIMER_INTERVALtwo);
+
+        // Clean up the timer when it's no longer needed
+        return () => {
+            clearInterval(findAvatarIdsInlogIntervalTimer);
         };
     } catch (error) {
         console.error(`Error initializing timer: ${error}`)
@@ -513,10 +548,6 @@ async function monitorAndSend() {
                                 );
                             }
                         } else if (
-                            log.includes("[API] Requesting Get avatars")
-                        ) {
-                            processAvatarid(log)
-                        } else if (
                             log.includes("[Behaviour] Destination set: ")
                         ) {
                             try {
@@ -612,6 +643,7 @@ async function monitorAndSend() {
 
 monitorAndSend();
 initializeTimer();
+initializeTimertwo();
 
 // ———————————————[Error Handling]———————————————
 process.on("uncaughtException", () => {

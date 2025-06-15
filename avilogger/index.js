@@ -75,24 +75,20 @@ function saveProcessedAvatars(set) {
 const processedAvatars = loadProcessedAvatars();
 
 /**
- * Processes a single avatar log line (only once per avatar)
- * @param {string} log
+ *
+ * @param {string} avid
  * @returns {Promise<object|undefined>}
  */
-async function processAvatarid(log) {
+async function processAvatarid(avatarIds) {
     const Config = await loadConfig();
     if (Config?.Toggle?.avilogger === false) return;
 
     const discordId = Config?.Userid?.discordid;
-    if (!discordId) {
-        main.log("Discord ID not found in config.", "warn", "mainlog");
-        return;
-    }
 
-    const avatarIdMatch = log.match(/avtr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    const avatarIdMatch = avatarIds;
     if (!avatarIdMatch) return;
 
-    const avatarId = avatarIdMatch[0];
+    const avatarId = avatarIdMatch;
 
     if (processedAvatars.has(avatarId)) {
         return;
@@ -106,7 +102,7 @@ async function processAvatarid(log) {
                 "Content-Type": "application/json",
                 "User-Agent": "World Balancer/2.0.4 contact@worldbalancer.com"
             },
-            timeout: 5000
+            timeout: 10000
         });
 
         if (response.status === 200) {
@@ -128,7 +124,7 @@ async function processAvatarid(log) {
         if (error.response) {
             main.log(`API Error (${error.response.status}): ${JSON.stringify(error.response.data)}`, "error", "mainlog");
         } else {
-            main.log(`Request Failed: ${error.message}`, "error", "mainlog");
+            console.err(error)
         }
 
         return {

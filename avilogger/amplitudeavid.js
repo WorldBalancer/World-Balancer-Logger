@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const axios = require("axios");
 const os = require("os");
 const path = require("path");
 const fs = require("fs");
@@ -30,6 +29,7 @@ const fsp = fs.promises;
 const { loadConfig } = require("../Configfiles/configManager.js");
 const main = require("../main.js");
 const pkgjn = require("../package.json");
+const processAvatarid = require("./index.js");
 
 // Path to amplitude.cache (Temp\VRChat\VRChat)
 const filePath = path.join(
@@ -41,8 +41,6 @@ const filePath = path.join(
     "VRChat",
     "amplitude.cache"
 );
-
-const ENDPOINT = "https://avatar.worldbalancer.com/v1/vrchat/avatars/store/putavatarEx";
 
 // Path to store processed avatars (AppData/Roaming or ~/.appname)
 const configDir = os.platform() === "win32"
@@ -70,24 +68,7 @@ function loadProcessedAvatars() {
     }
 }
 
-
-// Save current set of avatar IDs
-/**
- *
- *
- * @param {*} set
- */
-function saveProcessedAvatars(set) {
-    try {
-        fs.mkdirSync(configDir, { recursive: true });
-        fs.writeFileSync(PROCESSED_FILE, JSON.stringify(Array.from(set), null, 2));
-    } catch (err) {
-        main.log(`Failed to save processedAvatars.json: ${err.message}`, "error", "mainlog");
-    }
-}
-
 const processedAvatars = loadProcessedAvatars();
-
 
 /**
  *
@@ -113,54 +94,20 @@ async function extractAndSendNewAvatarIDs() {
 
         // Deduplicate avatar IDs
         const uniqueIds = new Set(avatarIdMatches);
-        let anyNewIdsProcessed = false;
 
-        for (const avatarId of uniqueIds) {
+        for (const avatarIds of uniqueIds) {
             // Skip if already processed
-            if (processedAvatars.has(avatarId)) {
+            if (processedAvatars.has(avatarIds)) {
                 continue;
             }
 
-            const payload = {
-                id: avatarId,
-                userid: discordId
-            };
-
             try {
-                const response = await axios.post(ENDPOINT, payload, {
-                    headers: {
-                        "Content-Type": "application/json",
-                        "User-Agent": "World Balancer/2.0.4 contact@worldbalancer.com"
-                    },
-                    timeout: 5000
-                });
-
-                if (response.status === 200) {
-                    processedAvatars.add(avatarId);
-                    anyNewIdsProcessed = true;
-                    main.log(`Avatar ID ${avatarId} uploaded successfully.`, "info", "mainlog");
-                } else {
-                    main.log(`Unexpected API response ${response.status} for ${avatarId}`, "warn", "mainlog");
-                }
-
+                processAvatarid(avatarIds)
             } catch (error) {
-                if (error.response) {
-                    main.log(
-                        `API Error (${error.response.status}) for ${avatarId}: ${JSON.stringify(error.response.data)}`,
-                        "error",
-                        "mainlog"
-                    );
-                } else {
-                    main.log(`Request failed for ${avatarId}: ${error.message}`, "error", "mainlog");
-                }
+                main.log(`${error.message}`, "error", "mainlog");
             }
         }
 
-        // Save updated processed avatars
-        if (anyNewIdsProcessed) {
-            saveProcessedAvatars(processedAvatars);
-            main.log("Processed avatars list updated and saved.", "info", "mainlog");
-        }
 
     } catch (err) {
         main.log(`Failed to read amplitude.cache: ${err.message}`, "error", "mainlog");
