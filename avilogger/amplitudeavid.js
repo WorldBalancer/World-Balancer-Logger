@@ -97,25 +97,29 @@ const processedAvatars = loadProcessedAvatars();
 async function extractAndSendNewAvatarIDs() {
     const Config = await loadConfig();
 
+    // Load user ID from config
+    const discordId = Config?.Userid?.discordid;
+    if (!discordId) {
+        main.log("Discord ID not found in config.", "info", "mainlog");
+        return;
+    }
+
     try {
         const data = await fsp.readFile(filePath, "utf8");
-
-        const discordId = Config?.Userid?.discordid;
-        if (!discordId) {
-            main.log("Discord ID not found in config.", "info", "mainlog");
+        const avatarIdMatches = data.match(/avtr_[\w-]+/g);
+        if (!avatarIdMatches || avatarIdMatches.length === 0) {
             return;
         }
 
-        const avatarIdMatches = data.match(/avtr_[\w-]+/g);
-        if (!avatarIdMatches || avatarIdMatches.length === 0) return;
+        // Deduplicate avatar IDs
+        const uniqueIds = new Set(avatarIdMatches);
+        let anyNewIdsProcessed = false;
 
-        // 🔧 Deduplicate avatar IDs from file
-        const uniqueAvatars = [...new Set(avatarIdMatches)];
-
-        let updated = false;
-
-        for (const avatarId of uniqueAvatars) {
-            if (processedAvatars.has(avatarId)) continue;
+        for (const avatarId of uniqueIds) {
+            // Skip if already processed
+            if (processedAvatars.has(avatarId)) {
+                continue;
+            }
 
             const payload = {
                 id: avatarId,
@@ -133,23 +137,29 @@ async function extractAndSendNewAvatarIDs() {
 
                 if (response.status === 200) {
                     processedAvatars.add(avatarId);
-                    updated = true;
-                    main.log(`Avatar ID ${avatarId} sent successfully.`, "info", "mainlog");
+                    anyNewIdsProcessed = true;
+                    main.log(`Avatar ID ${avatarId} uploaded successfully.`, "info", "mainlog");
                 } else {
-                    main.log(`Unexpected API status ${response.status} for ${avatarId}`, "info", "mainlog");
+                    main.log(`Unexpected API response ${response.status} for ${avatarId}`, "warn", "mainlog");
                 }
 
             } catch (error) {
                 if (error.response) {
-                    main.log(`API Error (${error.response.status}) for ${avatarId}: ${JSON.stringify(error.response.data)}`, "error", "mainlog");
+                    main.log(
+                        `API Error (${error.response.status}) for ${avatarId}: ${JSON.stringify(error.response.data)}`,
+                        "error",
+                        "mainlog"
+                    );
                 } else {
-                    main.log(`Request Failed for ${avatarId}: ${error.message}`, "error", "mainlog");
+                    main.log(`Request failed for ${avatarId}: ${error.message}`, "error", "mainlog");
                 }
             }
         }
 
-        if (updated) {
+        // Save updated processed avatars
+        if (anyNewIdsProcessed) {
             saveProcessedAvatars(processedAvatars);
+            main.log("Processed avatars list updated and saved.", "info", "mainlog");
         }
 
     } catch (err) {
