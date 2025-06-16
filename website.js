@@ -44,7 +44,6 @@ let instanceInfo = {
 function pushWebsite() {
     try {
         if (!io) {
-            errsleepy = "ERROR: Socket.io is not initialized!";
             return;
         }
 
@@ -95,7 +94,7 @@ function startServer() {
         try {
             pushWebsite(); // Send initial data when a user connects
         } catch (error) {
-            errsleepy = `ERROR when sending initial data: ${error}`;
+            console.error(error)
         }
 
         socket.on('disconnect', () => {

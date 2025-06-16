@@ -139,7 +139,6 @@ app.on("ready", () => {
             loadMainWindow();
         } catch (err) {
             console.error("Database init failed:", err);
-            log(`Database setup error: ${err.message}`, "error");
         }
     });
 });
