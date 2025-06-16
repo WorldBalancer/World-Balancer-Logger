@@ -59,8 +59,20 @@ function loadProcessedAvatars() {
     }
 }
 
+// Delay function
+/**
+ *
+ *
+ * @param {*} ms
+ * @return {*} 
+ */
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const processedAvatars = loadProcessedAvatars();
 
+// Main function to scan logs and process avatar IDs
 /**
  *
  *
@@ -79,20 +91,26 @@ async function findAvatarIdsInLogs() {
 
             const matches = content.match(AVTR_REGEX);
             if (matches) {
-                matches.forEach(avatarIds => {
-                    if (!foundIds.has(avatarIds)) {
-                        foundIds.add(avatarIds);
+                matches.forEach(avatarId => {
+                    if (!foundIds.has(avatarId)) {
+                        foundIds.add(avatarId);
                     }
                 });
             }
         }
 
-        for (const avatarIds of foundIds) {
-            if (processedAvatars.has(avatarIds)) {
+        for (const avatarId of foundIds) {
+            if (processedAvatars.has(avatarId)) {
                 continue;
             }
-            processAvatarid(avatarIds)
 
+            try {
+                await processAvatarid(avatarId);
+            } catch (err) {
+                console.error(`Failed to process avatar ID ${avatarId}: ${err.message}`);
+            }
+
+            await sleep(500); // 500ms delay between each ID
         }
 
     } catch (err) {

@@ -97,7 +97,7 @@ async function initializeTimer() {
 }
 
 // Timer configuration
-const TIMER_INTERVALtwo = 50000; // 50 seconds
+const TIMER_INTERVALtwo = 20000; // 20 seconds
 const findAvatarIdsInlog = findAvatarIdsInLogs
 
 // Create a timer to call FetchLists every 50 seconds
