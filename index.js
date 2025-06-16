@@ -588,6 +588,7 @@ async function monitorAndSend() {
                                     }
                                 }
                             } catch (error) {
+                                console.error(error)
                             }
                         }
                     }
