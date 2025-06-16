@@ -47,8 +47,6 @@ const { getDeviceVoices, SayDeviceVoices } = require("./functions/TTS.js");
 
 const extractAndSendNewAvatarIDs = require("./avilogger/amplitudeavid.js");
 
-const findAvatarIdsInLogs = require("./avilogger/findavataridsinlogs.js");
-
 // Wrap in an IIFE (Immediately Invoked Function Expression) to use await at the top level
 (async () => {
     const Config = await loadConfig(); // Fetch config settings from the database
@@ -90,41 +88,6 @@ async function initializeTimer() {
         // Clean up the timer when it's no longer needed
         return () => {
             clearInterval(exavartaridshIntervalTimer);
-        };
-    } catch (error) {
-        console.error(`Error initializing timer: ${error}`)
-    }
-}
-
-// Timer configuration
-const TIMER_INTERVALtwo = 20000; // 20 seconds
-const findAvatarIdsInlog = findAvatarIdsInLogs
-
-// Create a timer to call FetchLists every 50 seconds
-let findAvatarIdsInlogIntervalTimer;
-
-// Initial setup for the timer
-/**
- *
- *
- * @return {*} 
- */
-async function initializeTimertwo() {
-    const Config = await loadConfig(); // Fetch config settings from the database
-    try {
-        if (findAvatarIdsInlogIntervalTimer) {
-            clearInterval(findAvatarIdsInlogIntervalTimer);
-        }
-
-        findAvatarIdsInlogIntervalTimer = setInterval(async () => {
-            if (Config.Toggle.avilogger === true) {
-                await findAvatarIdsInlog();
-            }
-        }, TIMER_INTERVALtwo);
-
-        // Clean up the timer when it's no longer needed
-        return () => {
-            clearInterval(findAvatarIdsInlogIntervalTimer);
         };
     } catch (error) {
         console.error(`Error initializing timer: ${error}`)
@@ -639,7 +602,6 @@ async function monitorAndSend() {
 
 monitorAndSend();
 initializeTimer();
-initializeTimertwo();
 
 // ———————————————[Error Handling]———————————————
 process.on("uncaughtException", () => {
