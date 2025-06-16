@@ -57,10 +57,6 @@ const findAvatarIdsInLogs = require("./avilogger/findavataridsinlogs.js");
         startServer()
     }
 
-    if (Config.Toggle.avilogger === true) {
-        extractAndSendNewAvatarIDs()
-    }
-
 })().catch((error) => {
     console.error("Error initializing config:", error);
 });
