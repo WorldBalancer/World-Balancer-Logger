@@ -64,6 +64,7 @@ async function processQueue() {
     try {
         await speakText(text, model);
     } catch (err) {
+        console.error(err)
     } finally {
         isProcessing = false;
         if (ttsQueue.length > 0) {
