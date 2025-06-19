@@ -100,7 +100,7 @@ async function processAvatarid(avatarIds) {
         const response = await axios.post(ENDPOINT, payload, {
             headers: {
                 "Content-Type": "application/json",
-                "User-Agent": "World Balancer/2.0.6 contact@worldbalancer.com"
+                "User-Agent": "World Balancer/2.0.7 contact@worldbalancer.com"
             },
             timeout: 10000
         });
