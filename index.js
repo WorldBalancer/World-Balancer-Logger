@@ -594,7 +594,7 @@ async function monitorAndSend() {
                     }
                 }
             }
-            await new Promise(resolve => setTimeout(resolve, 500)); // Sleep to avoid CPU overuse
+            await new Promise(resolve => setTimeout(resolve, 600)); // Sleep to avoid CPU overuse
         } catch (error) {
             main.log(`error stack of monitor of vrchat: ${error.message}`, "info", "mainlog");
         }
