@@ -440,17 +440,22 @@
 
             <!-- Scripts -->
             <!-- Load JS dependencies -->
-            <script
-            src="https://code.jquery.com/jquery-3.7.1.min.js"
-            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-            crossorigin="anonymous">
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+                integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+                crossorigin="anonymous">
             </script>
             <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
                 integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
-                crossorigin="anonymous"></script>
+                crossorigin="anonymous">
+            </script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
                 integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
-                crossorigin="anonymous"></script>
+                crossorigin="anonymous">
+            </script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" 
+                integrity="sha512-H+rglffZ6f5gF7UJgvH4Naa+fGCgjrHKMgoFOGmcPTRwR6oILo5R+gtzNrpDp7iMV3udbymBVjkeZGNz1Em4rQ==" 
+                crossorigin="anonymous">
+            </script>
 
             <script>
                 function clearLogs(id) {
@@ -500,40 +505,40 @@
                     switch (event.data.type) {
                         case "mainlog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivMain.appendChild(logElement);
                             logsDivMain.scrollTop = logsDivMain.scrollHeight;
                             break;
                         case "joinleavelog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivJoinLeave.appendChild(logElement);
                             logsDivJoinLeave.scrollTop =
                                 logsDivJoinLeave.scrollHeight;
                             break;
                         case "modlog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivModLogs.appendChild(logElement);
                             logsDivModLogs.scrollTop = logsDivModLogs.scrollHeight;
                             break;
                         case "playercounterslog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivplayercountersLogs.appendChild(logElement);
                             logsDivplayercountersLogs.scrollTop =
                                 logsDivplayercountersLogs.scrollHeight;
                             break;
                         case "vrchatswitchavilog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivrchatswitchaviLogs.appendChild(logElement);
                             logsDivrchatswitchaviLogs.scrollTop =
                                 logsDivrchatswitchaviLogs.scrollHeight;
                             break;
                         case "srlog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivstaffrosterLogs.appendChild(logElement);
                             logsDivstaffrosterLogs.scrollTop =
                                 logsDivstaffrosterLogs.scrollHeight;
