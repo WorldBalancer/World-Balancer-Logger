@@ -500,40 +500,40 @@
                     switch (event.data.type) {
                         case "mainlog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivMain.appendChild(logElement);
                             logsDivMain.scrollTop = logsDivMain.scrollHeight;
                             break;
                         case "joinleavelog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivJoinLeave.appendChild(logElement);
                             logsDivJoinLeave.scrollTop =
                                 logsDivJoinLeave.scrollHeight;
                             break;
                         case "modlog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivModLogs.appendChild(logElement);
                             logsDivModLogs.scrollTop = logsDivModLogs.scrollHeight;
                             break;
                         case "playercounterslog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivplayercountersLogs.appendChild(logElement);
                             logsDivplayercountersLogs.scrollTop =
                                 logsDivplayercountersLogs.scrollHeight;
                             break;
                         case "vrchatswitchavilog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivrchatswitchaviLogs.appendChild(logElement);
                             logsDivrchatswitchaviLogs.scrollTop =
                                 logsDivrchatswitchaviLogs.scrollHeight;
                             break;
                         case "srlog":
                             logElement = document.createElement("p");
-                            logElement.innerHTML = event.data.message; // Use innerHTML to allow HTML content
+                            logElement.innerHTML = DOMPurify.sanitize(event.data.message); // Sanitize user-provided content
                             logsDivstaffrosterLogs.appendChild(logElement);
                             logsDivstaffrosterLogs.scrollTop =
                                 logsDivstaffrosterLogs.scrollHeight;
