@@ -26,6 +26,7 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
+const RateLimit = require('express-rate-limit');
 
 let io; // Declare io globally
 
@@ -85,7 +86,12 @@ function startServer() {
 
     app.use(express.static(path.join(__dirname, 'public')));
 
-    app.get('/', (req, res) => {
+    const limiter = RateLimit({
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100, // max 100 requests per windowMs
+    });
+
+    app.get('/', limiter, (req, res) => {
         res.sendFile(path.join(__dirname, 'public/worldinfo.html'));
     });
 
